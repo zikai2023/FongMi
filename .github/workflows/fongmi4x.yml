@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4  # Use the latest version of setup-node
         with:
-          node-version: 16  # Explicitly set Node.js version to 16
+          node-version: 12  # Explicitly set Node.js version to 12
 
       - uses: actions/checkout@v2 
 
