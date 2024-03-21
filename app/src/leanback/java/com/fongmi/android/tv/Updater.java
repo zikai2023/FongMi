@@ -82,13 +82,7 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-            if (need(code, name)) App.post(() -> show(activity, name, desc));}
-else {
-Handler handler = new Handler(Looper.getMainLooper()); new
-handler.post(new Runnable() {
-new
-@Override
-public void run() { Notify.show(text:"已是最新版本});
+            if (need(code, name)) App.post(() -> show(activity, name, desc));
         } catch (Exception e) {
             e.printStackTrace();
         }
