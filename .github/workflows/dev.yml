@@ -5,7 +5,7 @@ on:
   push:
     # 根据branch或者tags来触发
     branches:
-      - patch-1
+      - dev
 jobs:
   build:
     runs-on: ubuntu-latest
