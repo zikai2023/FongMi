@@ -6,7 +6,6 @@ import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ActivitySettingCustomBinding;
@@ -17,7 +16,7 @@ import com.fongmi.android.tv.ui.dialog.DisplayDialog;
 import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
 import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.tencent.smtt.sdk.QbSdk;
+import com.fongmi.android.tv.utils.Xwalk;
 import java.util.Locale;
 
 public class SettingCustomActivity extends BaseActivity {
@@ -178,7 +177,7 @@ public class SettingCustomActivity extends BaseActivity {
         int index = Setting.getParseWebView();
         Setting.putParseWebView(index = index == parseWebview.length - 1 ? 0 : ++index);
         mBinding.parseWebviewText.setText(parseWebview[index]);
-        if (index == 1 && QbSdk.getTbsVersion(App.get()) <= 0) X5WebViewDialog.create(this).show();
+        if (index == 1 && !Xwalk.exist()) X5WebViewDialog.create(this).show();
     }
 
 }
