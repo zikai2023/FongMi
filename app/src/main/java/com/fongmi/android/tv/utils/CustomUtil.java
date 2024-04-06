@@ -83,7 +83,7 @@ public class CustomUtil {
             return object.get("prefix").getAsString();
         } catch (Exception e) {
             e.printStackTrace();
-            return "\uD83D\uDCFA遥遥领先影视:";
+            return "\uD83D\uDCFA遥遥领先:";
         }
     }
 }
