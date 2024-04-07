@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.github.catvod.utils.Github;
+import com.fongmi.android.tv.server.Server;
 import com.github.catvod.utils.Path;
 
 import org.xwalk.core.XWalkInitializer;
@@ -16,7 +16,7 @@ public class Xwalk {
     public static boolean inited;
 
     public static String url() {
-        return Github.getCrosswalk();
+        return Server.get().getAddress("XWalkRuntimeLib.apk");
     }
 
     public static File file() {

@@ -20,8 +20,10 @@ public class X5WebViewDialog  implements Download.Callback {
     private DialogX5webviewBinding binding;
     private AlertDialog dialog;
     private Activity activity;
+    private boolean confirm;
 
     public X5WebViewDialog(Activity activity) {
+        this.confirm = false;
         this.activity = activity;
     }
 
@@ -50,6 +52,8 @@ public class X5WebViewDialog  implements Download.Callback {
     }
 
     private void confirm(View view) {
+        if (confirm) return;
+        confirm = true;
         binding.confirm.setEnabled(false);
         Xwalk.remove();
         Download.create(getXwalk(), getFile(), this).start();
