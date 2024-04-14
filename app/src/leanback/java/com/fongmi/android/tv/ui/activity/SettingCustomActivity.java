@@ -6,6 +6,7 @@ import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ActivitySettingCustomBinding;
@@ -13,8 +14,10 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ButtonsDialog;
 import com.fongmi.android.tv.ui.dialog.DisplayDialog;
+import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
+import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.ResUtil;
-
+import com.tencent.smtt.sdk.QbSdk;
 import java.util.Locale;
 
 public class SettingCustomActivity extends BaseActivity {
@@ -25,8 +28,8 @@ public class SettingCustomActivity extends BaseActivity {
     private String[] episode;
     private String[] fullscreenMenuKey;
     private String[] smallWindowBackKey;
-    private String[] homeMenuKey;
     private String[] homeUI;
+    private String[] parseWebview;
 
     @Override
     protected ViewBinding getBinding() {
@@ -52,10 +55,11 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeSiteLockText.setText(getSwitch(Setting.isHomeSiteLock()));
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.smallWindowBackKeyText.setText((smallWindowBackKey = ResUtil.getStringArray(R.array.select_small_window_back_key))[Setting.getSmallWindowBackKey()]);
-        mBinding.homeMenuKeyText.setText((homeMenuKey = ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
+        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
         mBinding.homeUIText.setText((homeUI = ResUtil.getStringArray(R.array.select_home_ui))[Setting.getHomeUI()]);
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
+        mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
     }
 
     @Override
@@ -70,11 +74,12 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeSiteLock.setOnClickListener(this::setHomeSiteLock);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.smallWindowBackKey.setOnClickListener(this::setSmallWindowBackKey);
-        mBinding.homeMenuKey.setOnClickListener(this::setHomeMenuKey);
+        mBinding.homeMenuKey.setOnClickListener(this::onHomeMenuKey);
         mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
         mBinding.homeUI.setOnClickListener(this::setHomeUI);
         mBinding.homeButtons.setOnClickListener(this::onHomeButtons);
         mBinding.homeHistory.setOnClickListener(this::setHomeHistory);
+        mBinding.parseWebview.setOnClickListener(this::setParseWebview);
     }
 
     private void setQuality(View view) {
@@ -141,10 +146,12 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.smallWindowBackKeyText.setText(smallWindowBackKey[index]);
     }
 
-    private void setHomeMenuKey(View view) {
-        int index = Setting.getHomeMenuKey();
-        Setting.putHomeMenuKey(index = index == homeMenuKey.length - 1 ? 0 : ++index);
-        mBinding.homeMenuKeyText.setText(homeMenuKey[index]);
+    private void onHomeMenuKey(View view) {
+        MenuKeyDialog.create(this).show();
+    }
+
+    public void setHomeMenuText() {
+        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
     }
 
     private void setAggregatedSearch(View view) {
@@ -165,6 +172,13 @@ public class SettingCustomActivity extends BaseActivity {
     private void setHomeHistory(View view) {
         Setting.putHomeHistory(!Setting.isHomeHistory());
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
+    }
+
+    private void setParseWebview(View view) {
+        int index = Setting.getParseWebView();
+        Setting.putParseWebView(index = index == parseWebview.length - 1 ? 0 : ++index);
+        mBinding.parseWebviewText.setText(parseWebview[index]);
+        if (index == 1 && QbSdk.getTbsVersion(App.get()) <= 0) X5WebViewDialog.create(this).show();
     }
 
 }
