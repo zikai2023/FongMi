@@ -21,6 +21,7 @@ import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.extractor.Thunder;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
@@ -198,6 +199,60 @@ public class SiteViewModel extends ViewModel {
         });
     }
 
+    public Result getplayerContent(String key, String flag, String id) {
+        try{
+            if (id.startsWith("magnet")){
+                Notify.show("暂不支持磁力");
+                return new Result();
+            }
+            Site site = VodConfig.get().getSite(key);
+            if (site.getType() == 3) {
+                Spider spider = VodConfig.get().getSpider(site);
+                String playerContent = spider.playerContent(flag, id, VodConfig.get().getFlags());
+                SpiderDebug.log(playerContent);
+                VodConfig.get().setRecent(site);
+                Result result = Result.fromJson(playerContent);
+                if (result.getFlag().isEmpty()) result.setFlag(flag);
+                result.setUrl(Source.get().fetch(result));
+                result.setHeader(site.getHeader());
+                result.setKey(key);
+                return result;
+            } else if (site.getType() == 4) {
+                ArrayMap<String, String> params = new ArrayMap<>();
+                params.put("play", id);
+                params.put("flag", flag);
+                String playerContent = call(site, params, true);
+                SpiderDebug.log(playerContent);
+                Result result = Result.fromJson(playerContent);
+                if (result.getFlag().isEmpty()) result.setFlag(flag);
+                result.setUrl(Source.get().fetch(result));
+                result.setHeader(site.getHeader());
+                return result;
+            } else if (site.isEmpty() && "push_agent".equals(key)) {
+                Result result = new Result();
+                result.setParse(0);
+                result.setFlag(flag);
+                result.setUrl(Url.create().add(id));
+                result.setUrl(Source.get().fetch(result));
+                return result;
+            } else {
+                Url url = Url.create().add(id);
+                String type = Uri.parse(id).getQueryParameter("type");
+                if ("json".equals(type)) url = Result.fromJson(OkHttp.newCall(id, site.getHeaders()).execute().body().string()).getUrl();
+                Result result = new Result();
+
+                result.setUrl(url);
+                result.setFlag(flag);
+                result.setHeader(site.getHeader());
+                result.setPlayUrl(site.getPlayUrl());
+                result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
+                SpiderDebug.log(result.toString());
+                return result;
+            }
+        } catch (Exception e){
+            return new Result();
+        }
+    }
     public void searchContent(Site site, String keyword, boolean quick) throws Throwable {
         if (site.getType() == 3) {
             Spider spider = VodConfig.get().getSpider(site);

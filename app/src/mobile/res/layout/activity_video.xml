@@ -96,31 +96,32 @@
                     android:orientation="vertical"
                     android:paddingTop="16dp"
                     android:paddingBottom="8dp">
-
-                    <TextView
-                        android:id="@+id/name"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:textColor="@color/white"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        tools:text="慶餘年第二季" />
+                        android:gravity="clip_horizontal">
+                        <TextView
+                            android:id="@+id/name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="8dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:textColor="#FFAB00"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:text="慶餘年第二季" />
 
-                    <TextView
-                        android:id="@+id/remark"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        tools:text="更新到第二季" />
+                        <TextView
+                            android:id="@+id/remark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            tools:text="更新到第二季" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/site"
@@ -170,6 +171,82 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         tools:text="演員：FongMi" />
+
+                    <TextView
+                        android:id="@+id/playurl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="16dp"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        tools:text="播放地址：FongMi" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="下载"
+                            android:textColor="#FFAB00"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/download"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_fab_link"
+                            tools:visibility="visible" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:text="投屏"
+                            android:textColor="#FFAB00"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/castDetail"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_control_cast"
+                            tools:visibility="visible" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:text="收藏"
+                            android:textColor="#FFAB00"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/keepDetail"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_control_keep_off"
+                            tools:visibility="visible" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
