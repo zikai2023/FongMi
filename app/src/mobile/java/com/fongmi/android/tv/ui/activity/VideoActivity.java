@@ -629,8 +629,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public void onItemClick(Episode item) {
         if (download_choose) {
             Result t =  mViewModel.getplayerContent(getKey(), getFlag().getFlag(), item.getUrl());
-            if(t.getParse() != 0 || t.getRealUrl().isEmpty()) onShare(mBinding.control.title.getText(), mPlayers.getUrl());
-            else onShare(mBinding.control.title.getText(), t.getRealUrl());
+            if(t.getParse() == 0) onShare(getName() + "-" + item.getName(), t.getRealUrl());
+            else {
+                Notify.show("依赖解析视频，只能下载当前播放集");
+                if(mPlayers.getUrl() != null)
+                    onShare(mBinding.control.title.getText(), mPlayers.getUrl());
+            }
         } else {
             if (shouldEnterFullscreen(item)) return;
             mFlagAdapter.toggle(item);
