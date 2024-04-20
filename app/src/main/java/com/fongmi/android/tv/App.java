@@ -2,6 +2,7 @@ package com.fongmi.android.tv;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -37,12 +38,15 @@ public class App extends Application {
     private Activity activity;
     private final Gson gson;
     private boolean hook;
+    private ComponentName nick;
+
 
     public App() {
         instance = this;
         executor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
         handler = HandlerCompat.createAsync(Looper.getMainLooper());
         gson = new Gson();
+        nick = new ComponentName("com.nick.download","com.nick.download.DownMainActivity");
     }
 
     public static App get() {
@@ -51,6 +55,10 @@ public class App extends Application {
 
     public static Gson gson() {
         return get().gson;
+    }
+
+    public static ComponentName nick() {
+        return get().nick;
     }
 
     public static Activity activity() {

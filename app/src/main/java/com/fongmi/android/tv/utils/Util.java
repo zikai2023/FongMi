@@ -179,5 +179,7 @@ public class Util {
         }
         return false;
     }
-
+    public static boolean isTv() {
+        return Configuration.UI_MODE_TYPE_TELEVISION == ((UiModeManager) App.get().getSystemService(Context.UI_MODE_SERVICE)).getCurrentModeType();
+    }
 }

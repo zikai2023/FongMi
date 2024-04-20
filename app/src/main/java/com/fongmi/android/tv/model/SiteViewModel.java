@@ -201,10 +201,6 @@ public class SiteViewModel extends ViewModel {
 
     public Result getplayerContent(String key, String flag, String id) {
         try{
-            if (id.startsWith("magnet")){
-                Notify.show("暂不支持磁力");
-                return new Result();
-            }
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
                 Spider spider = VodConfig.get().getSpider(site);

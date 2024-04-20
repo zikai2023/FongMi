@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -628,12 +629,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onItemClick(Episode item) {
         if (download_choose) {
-            Result t =  mViewModel.getplayerContent(getKey(), getFlag().getFlag(), item.getUrl());
-            if(t.getParse() == 0) onShare(getName() + "-" + item.getName(), t.getRealUrl());
-            else {
-                Notify.show("依赖解析视频，只能下载当前播放集");
-                if(mPlayers.getUrl() != null)
-                    onShare(mBinding.control.title.getText(), mPlayers.getUrl());
+            if ( Util.canNickhander(item.getOrgurl()) ) {
+                onShare(getName() + "-" + item.getName(), item.getOrgurl());
+            } else {
+                Result t =  mViewModel.getplayerContent(getKey(), getFlag().getFlag(), item.getUrl());
+                if(t.getParse() == 0) onShare(getName() + "-" + item.getName(), t.getRealUrl());
+                else {
+                    Notify.show("依赖解析视频，只能下载当前播放集");
+                    if(mPlayers.getUrl() != null)
+                        onShare(mBinding.control.title.getText(), mPlayers.getUrl());
+                }
             }
         } else {
             if (shouldEnterFullscreen(item)) return;
@@ -1681,15 +1686,24 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onShare(CharSequence title, String url) {
-        if (IDMUtil.downloadFile(this, url, title.toString(), mPlayers.getHeaders(), false, false)) return;
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Intent.EXTRA_TEXT, url);
-        intent.putExtra("name", title);
-        intent.putExtra("title", title);
-        intent.setType("video/*");
-        startActivity(Util.getChooser(intent));
-        setRedirect(true);
+        if (Util.hasNickDownload() && Util.canNickhander(url)) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setComponent(App.nick());
+            intent.setData(Uri.parse(url.replace("tvbox-xg:","")));
+            setRedirect(true);
+            startActivity(intent);
+        } else {
+            if (IDMUtil.downloadFile(this, url, title.toString(), mPlayers.getHeaders(), false, false)) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(Intent.EXTRA_TEXT, url);
+            intent.putExtra("name", title);
+            intent.putExtra("title", title);
+            intent.setType("text/plain");
+            startActivity(Util.getChooser(intent));
+            setRedirect(true);
+        }
     }
 
     private void onDownload() {

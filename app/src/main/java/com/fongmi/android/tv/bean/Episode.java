@@ -16,29 +16,31 @@ public class Episode implements Parcelable {
     private String desc;
     @SerializedName("url")
     private String url;
-
+    @SerializedName("orgurl")
+    private String orgurl;
     private int index;
     private int number;
     private boolean activated;
     private boolean selected;
 
     public static Episode create(String name, String url) {
-        return new Episode(name, "", url);
+        return new Episode(name, "", url, "");
     }
 
-    public static Episode create(String name, String desc, String url) {
-        return new Episode(name, desc, url);
+    public static Episode create(String name, String desc, String url, String orgurl) {
+        return new Episode(name, desc, url, orgurl);
     }
 
     public static Episode objectFrom(String str) {
         return App.gson().fromJson(str, Episode.class);
     }
 
-    public Episode(String name, String desc, String url) {
+    public Episode(String name, String desc, String url, String orgurl) {
         this.number = Util.getDigit(name);
         this.name = Trans.s2t(name);
         this.desc = Trans.s2t(desc);
         this.url = url;
+        this.orgurl = orgurl;
     }
 
     public Episode() {
@@ -59,7 +61,9 @@ public class Episode implements Parcelable {
     public String getUrl() {
         return url;
     }
-
+    public String getOrgurl() {
+        return orgurl.isEmpty() ? url:orgurl;
+    }
     public int getIndex() {
         return index;
     }
