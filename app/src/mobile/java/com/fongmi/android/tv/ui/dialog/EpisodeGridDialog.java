@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -28,6 +29,7 @@ public class EpisodeGridDialog extends BaseDialog {
     private boolean reverse;
     private int spanCount;
     private int itemCount;
+    private DialogInterface.OnDismissListener mOnClickListener;
 
     public static EpisodeGridDialog create() {
         return new EpisodeGridDialog();
@@ -49,7 +51,8 @@ public class EpisodeGridDialog extends BaseDialog {
     }
 
     public void show(FragmentActivity activity) {
-        for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
+        for (Fragment f : activity.getSupportFragmentManager().getFragments())
+            if (f instanceof BottomSheetDialogFragment) return;
         show(activity.getSupportFragmentManager(), null);
     }
 
@@ -65,6 +68,18 @@ public class EpisodeGridDialog extends BaseDialog {
         setPager();
     }
 
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (mOnClickListener != null) {
+            mOnClickListener.onDismiss(dialog);
+        }
+    }
+
+    public void setOnDismissListener(DialogInterface.OnDismissListener listener) {
+        this.mOnClickListener = listener;
+    }
+
     private void setSpanCount() {
         int total = 0;
         int row = ResUtil.isLand(getActivity()) ? 5 : 10;
@@ -78,8 +93,10 @@ public class EpisodeGridDialog extends BaseDialog {
     }
 
     private void setTitles() {
-        if (reverse) for (int i = episodes.size(); i > 0; i -= itemCount) titles.add(i + " - " + Math.max(i - itemCount - 1, 1));
-        else for (int i = 0; i < episodes.size(); i += itemCount) titles.add((i + 1) + " - " + Math.min(i + itemCount, episodes.size()));
+        if (reverse) for (int i = episodes.size(); i > 0; i -= itemCount)
+            titles.add(i + " - " + Math.max(i - itemCount - 1, 1));
+        else for (int i = 0; i < episodes.size(); i += itemCount)
+            titles.add((i + 1) + " - " + Math.min(i + itemCount, episodes.size()));
     }
 
     private void setPager() {

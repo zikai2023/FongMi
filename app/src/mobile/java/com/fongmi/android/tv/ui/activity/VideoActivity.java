@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -152,6 +153,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean rotate;
     private boolean stop;
     private boolean lock;
+    private boolean download_choose;
     private int toggleCount;
     private Runnable mR0;
     private Runnable mR1;
@@ -311,6 +313,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mDialogs = new ArrayList<>();
         mBroken = new ArrayList<>();
         mClock = Clock.create(mBinding.display.time);
+        download_choose = false;
         mR0 = this::stopService;
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
@@ -336,6 +339,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.name.setOnLongClickListener(view -> onChange());
+        mBinding.download.setOnClickListener(view -> onDownload());
+        mBinding.keepDetail.setOnClickListener(view -> onKeep());
+        mBinding.castDetail.setOnClickListener(view -> onCast());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
@@ -462,7 +468,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.search.observeForever(mObserveSearch);
         mViewModel.episode.observe(this, episode -> {
             onItemClick(episode);
-            hideSheet();
+            if (!download_choose) hideSheet();
         });
     }
 
@@ -581,6 +587,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
         mBinding.control.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
+        setText(mBinding.playurl, R.string.detail_playurl, episode.getUrl());
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         updateHistory(episode, replay);
@@ -621,11 +628,25 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Episode item) {
-        if (shouldEnterFullscreen(item)) return;
-        mFlagAdapter.toggle(item);
-        notifyItemChanged(mEpisodeAdapter);
-        mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
-        onRefresh();
+        if (download_choose) {
+            if ( Util.canNickhander(item.getOrgurl()) ) {
+                onShare(getName() + "-" + item.getName(), item.getOrgurl());
+            } else {
+                Result t =  mViewModel.getplayerContent(getKey(), getFlag().getFlag(), item.getUrl());
+                if(t.getParse() == 0) onShare(getName() + "-" + item.getName(), t.getRealUrl());
+                else {
+                    Notify.show("依赖解析视频，只能下载当前播放集");
+                    if(mPlayers.getUrl() != null)
+                        onShare(mBinding.control.title.getText(), mPlayers.getUrl());
+                }
+            }
+        } else {
+            if (shouldEnterFullscreen(item)) return;
+            mFlagAdapter.toggle(item);
+            notifyItemChanged(mEpisodeAdapter);
+            mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
+            onRefresh();
+        }
     }
 
     @Override
@@ -1153,6 +1174,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mHistory.setVodFlag(getFlag().getFlag());
         mHistory.setCreateTime(System.currentTimeMillis());
         mPlayers.setPosition(Math.max(mHistory.getOpening(), mHistory.getPosition()));
+        mHistory.update();
     }
 
     private void checkPlayImg(boolean playing) {
@@ -1163,6 +1185,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void checkKeepImg() {
         mBinding.control.keep.setImageResource(Keep.find(getHistoryKey()) == null ? R.drawable.ic_control_keep_off : R.drawable.ic_control_keep_on);
+        mBinding.keepDetail.setImageResource(Keep.find(getHistoryKey()) == null ? R.drawable.ic_control_keep_off : R.drawable.ic_control_keep_on);
     }
 
     private void checkLockImg() {
@@ -1196,7 +1219,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         long position, duration;
         mHistory.setPosition(position = mPlayers.getPosition());
         mHistory.setDuration(duration = mPlayers.getDuration());
-        if (position >= 0 && duration > 0 && !Setting.isIncognito()) App.execute(() -> mHistory.update());
+        //if (position >= 0 && duration > 0 && !Setting.isIncognito()) App.execute(() -> mHistory.update());
         if (mHistory.getEnding() > 0 && duration > 0 && mHistory.getEnding() + position >= duration) {
             mClock.setCallback(null);
             checkNext();
@@ -1663,15 +1686,32 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onShare(CharSequence title, String url) {
-        if (IDMUtil.downloadFile(this, url, title.toString(), mPlayers.getHeaders(), false, false)) return;
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Intent.EXTRA_TEXT, url);
-        intent.putExtra("name", title);
-        intent.putExtra("title", title);
-        intent.setType("text/plain");
-        startActivity(Util.getChooser(intent));
-        setRedirect(true);
+        if (Util.hasNickDownload() && Util.canNickhander(url)) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setComponent(App.nick());
+            intent.setData(Uri.parse(url.replace("tvbox-xg:","")));
+            setRedirect(true);
+            startActivity(intent);
+        } else {
+            if (IDMUtil.downloadFile(this, url, title.toString(), mPlayers.getHeaders(), false, false)) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(Intent.EXTRA_TEXT, url);
+            intent.putExtra("name", title);
+            intent.putExtra("title", title);
+            intent.setType("text/plain");
+            startActivity(Util.getChooser(intent));
+            setRedirect(true);
+        }
+    }
+
+    private void onDownload() {
+        download_choose = true;
+        EpisodeGridDialog t = new EpisodeGridDialog();
+        t.reverse(mHistory.isRevSort()).episodes(mEpisodeAdapter.getItems());
+        t.setOnDismissListener(dialog -> download_choose = false);
+        t.show(this);
     }
 
     @Override

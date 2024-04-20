@@ -95,7 +95,7 @@ public class Thunder implements Source.Extractor {
             if (torrent) Download.create(url, taskId.getSaveFile()).start();
             else while (XLTaskHelper.get().getTaskInfo(taskId).getTaskStatus() != 2 && time < 5000) sleep();
             List<TorrentFileInfo> medias = XLTaskHelper.get().getTorrentInfo(taskId.getSaveFile()).getMedias();
-            for (TorrentFileInfo media : medias) episodes.add(Episode.create(media.getFileName(), media.getSize(), media.getPlayUrl()));
+            for (TorrentFileInfo media : medias) episodes.add(Episode.create(media.getFileName(), media.getSize(), media.getPlayUrl(), url));
             XLTaskHelper.get().stopTask(taskId);
             return episodes;
         }
