@@ -1,6 +1,7 @@
 package com.fongmi.quickjs.utils;
 
 import com.fongmi.quickjs.bean.Req;
+import com.github.catvod.net.OkCookieJar;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
