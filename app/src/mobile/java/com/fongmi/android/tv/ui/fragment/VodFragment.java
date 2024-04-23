@@ -55,6 +55,10 @@ import com.github.catvod.utils.Trans;
 import com.google.common.net.HttpHeaders;
 import com.permissionx.guolindev.PermissionX;
 import java.security.SecureRandom;
+import com.google.gson.JsonParser;
+import com.hjq.permissions.OnPermissionCallback;
+import com.hjq.permissions.Permission;
+import com.hjq.permissions.XXPermissions;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -75,7 +79,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     private SiteViewModel mViewModel;
     private TypeAdapter mAdapter;
     private Runnable mRunnable;
-    private List<String> mHots;
+    private List<Hot.Data> mHots;
     private Result mResult;
 
     public static VodFragment newInstance() {
@@ -151,10 +155,15 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void getHot() {
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+        OkHttp.newCall("https://node.video.qq.com/x/api/hot_search/?callback=&channelId=0&otype=json").enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                mHots = Hot.get(response.body().string());
+                String itemList = JsonParser.parseString(response.body().string()).getAsJsonObject()
+                        .get("data").getAsJsonObject()
+                        .get("mapResult").getAsJsonObject()
+                        .get("0").getAsJsonObject().toString();
+                Setting.putHot(itemList);
+                mHots = Hot.get(itemList);
             }
         });
     }
@@ -162,7 +171,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     private void updateHot() {
         App.post(mRunnable, 10 * 1000);
         if (mHots.isEmpty() || mHots.size() < 10) return;
-        mBinding.hot.setText(mHots.get(new SecureRandom().nextInt(11)));
+        mBinding.hot.setText(mHots.get(new SecureRandom().nextInt(11)).getName());
     }
 
     private Result handle(Result result) {

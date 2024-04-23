@@ -17,7 +17,6 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Suggest;
-import com.fongmi.android.tv.bean.SuggestTwo;
 import com.fongmi.android.tv.databinding.ActivitySearchBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SiteCallback;
@@ -31,13 +30,12 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
-import com.google.common.net.HttpHeaders;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.List;
 
 import okhttp3.Call;
-import okhttp3.Headers;
 import okhttp3.Response;
 
 public class SearchActivity extends BaseActivity implements WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CustomKeyboard.Callback, SiteCallback {
@@ -102,12 +100,17 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private void getHot() {
         mBinding.hint.setText(R.string.search_hot);
         mWordAdapter.addAll(Hot.get(Setting.getHot()));
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+
+        OkHttp.newCall("https://node.video.qq.com/x/api/hot_search/?callback=&channelId=0&otype=json").enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                List<String> items = Hot.get(response.body().string());
+                String itemList = JsonParser.parseString(response.body().string()).getAsJsonObject()
+                        .get("data").getAsJsonObject()
+                        .get("mapResult").getAsJsonObject()
+                        .get("0").getAsJsonObject().toString();
+                Setting.putHot(itemList);
                 if (mWordAdapter.getItemCount() > 0) return;
-                App.post(() -> mWordAdapter.addAll(items));
+                App.post(() -> mWordAdapter.addAll(Hot.get(itemList)));
             }
         });
     }
@@ -119,18 +122,16 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = SuggestTwo.get(response.body().string());
+                List<Hot.Data> items = Suggest.get(response.body().string());
                 App.post(() -> mWordAdapter.appendAll(items));
             }
         });
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + text).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = Suggest.get(response.body().string());
-                App.post(() -> mWordAdapter.appendAll(items), 200);
-            }
-        });
+    }
+
+    @Override
+    public void onItemClick(Hot.Data text) {
+        mBinding.keyword.setText(text.getName());
+        onSearch();
     }
 
     @Override

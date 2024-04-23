@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.bean.Hot;
+import com.fongmi.android.tv.bean.Hot.Data;
 import com.fongmi.android.tv.databinding.AdapterCollectWordBinding;
 
 import java.util.ArrayList;
@@ -14,19 +16,14 @@ import java.util.List;
 public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
-    private final List<String> mItems;
+    private final List<Data> mItems;
 
     public WordAdapter(OnClickListener listener) {
         this.mItems = new ArrayList<>();
         this.mListener = listener;
     }
 
-    public interface OnClickListener {
-
-        void onItemClick(String text);
-    }
-
-    public void addAll(List<String> items) {
+    public void addAll(List<Data> items) {
         mItems.clear();
         mItems.addAll(items.subList(0, Math.min(items.size(), 20)));
         notifyDataSetChanged();
@@ -36,7 +33,7 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
         mItems.clear();
     }
 
-    public void appendAll(List<String> items) {
+    public void appendAll(List<Data> items) {
         mItems.addAll(items.subList(0, Math.min(items.size(), 20)));
         notifyDataSetChanged();
     }
@@ -54,9 +51,15 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String item = mItems.get(position);
-        holder.binding.text.setText(item);
+        Data item = mItems.get(position);
+        holder.binding.rank.setImageResource(Hot.getRankDrawable(item.getRank()));
+        holder.binding.trend.setImageResource(Hot.getTrendDrawable(item.getTrend()));
+        holder.binding.text.setText(item.getName());
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(item));
+    }
+
+    public interface OnClickListener {
+        void onItemClick(Data text);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

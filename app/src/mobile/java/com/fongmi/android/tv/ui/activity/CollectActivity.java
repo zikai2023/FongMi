@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -24,7 +25,6 @@ import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Suggest;
-import com.fongmi.android.tv.bean.SuggestTwo;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
 import com.fongmi.android.tv.impl.Callback;
@@ -82,6 +82,11 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         return getIntent().getStringExtra("keyword");
     }
 
+    private void setKeyword(String text) {
+        mBinding.keyword.setText(text);
+        mBinding.keyword.setSelection(text.length());
+    }
+
     private boolean empty() {
         return mBinding.keyword.getText().toString().trim().isEmpty();
     }
@@ -130,7 +135,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mBinding.recycler.setAdapter(mSearchAdapter = new SearchAdapter(this));
         mBinding.wordRecycler.setHasFixedSize(true);
         mBinding.wordRecycler.setAdapter(mWordAdapter = new WordAdapter(this));
-        mBinding.wordRecycler.setLayoutManager(new FlexboxLayoutManager(this, FlexDirection.ROW));
+        mBinding.wordRecycler.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recordRecycler.setHasFixedSize(true);
         mBinding.recordRecycler.setAdapter(mRecordAdapter = new RecordAdapter(this));
         mBinding.recordRecycler.setLayoutManager(new FlexboxLayoutManager(this, FlexDirection.ROW));
@@ -156,7 +161,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             mCollectAdapter.add(result.getList());
         });
         mViewModel.result.observe(this, result -> {
-            boolean same = result.getList().size() > 0 && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
+            boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
             if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
             if (same) mSearchAdapter.addAll(result.getList());
             mScroller.endLoading(result);
@@ -166,11 +171,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private void checkKeyword() {
         if (TextUtils.isEmpty(getKeyword())) mBinding.keyword.requestFocus();
         else setKeyword(getKeyword());
-    }
-
-    private void setKeyword(String text) {
-        mBinding.keyword.setText(text);
-        mBinding.keyword.setSelection(text.length());
     }
 
     private void setSite() {
@@ -216,16 +216,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = SuggestTwo.get(response.body().string());
+                List<Hot.Data> items = Suggest.get(response.body().string());
                 App.post(() -> mWordAdapter.appendAll(items));
-            }
-        });
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + text).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = Suggest.get(response.body().string());
-                App.post(() -> mWordAdapter.appendAll(items), 200);
             }
         });
     }
@@ -258,6 +250,12 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     public void onChanged() {
         mSites.clear();
         setSite();
+    }
+
+    @Override
+    public void onItemClick(Hot.Data text) {
+        setKeyword(text.getName());
+        search();
     }
 
     @Override
