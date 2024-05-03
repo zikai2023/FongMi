@@ -1,8 +1,8 @@
 package com.github.catvod.net;
 
 import android.text.TextUtils;
-import android.webkit.CookieManager;
-import android.webkit.WebView;
+import com.tencent.smtt.sdk.CookieManager;
+import com.tencent.smtt.sdk.WebView;
 
 import androidx.annotation.NonNull;
 
@@ -48,6 +48,10 @@ public class OkCookieJar implements CookieJar {
         }
     }
 
+    private void add(List<Cookie> items, Cookie cookie) {
+        if (cookie != null) items.add(cookie);
+    }
+
     @NonNull
     @Override
     public synchronized List<Cookie> loadForRequest(@NonNull HttpUrl url) {
@@ -55,7 +59,7 @@ public class OkCookieJar implements CookieJar {
             List<Cookie> items = new ArrayList<>();
             String cookie = manager.getCookie(url.toString());
             if (TextUtils.isEmpty(cookie)) return Collections.emptyList();
-            for (String split : cookie.split(";")) items.add(Cookie.parse(url, split));
+            for (String split : cookie.split(";")) add(items, Cookie.parse(url, split));
             return items;
         } catch (Throwable e) {
             return Collections.emptyList();
