@@ -1,4 +1,4 @@
-name: fongmibox Build
+name: fongmiboxtv Build
 
 on:
   workflow_dispatch:
