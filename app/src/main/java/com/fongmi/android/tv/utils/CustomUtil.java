@@ -54,7 +54,7 @@ public class CustomUtil {
     }
 
     static public JsonObject fetchCustomJson() {
-        String response = httpClient.request("https://gitcode.net/qq49371114/yylx/raw/master/custom.json");
+        String response = httpClient.request("https://atomgit.com/jaychan/yylx/raw/master/custom.json");
         return Json.parse(response).getAsJsonObject();
     }
 
