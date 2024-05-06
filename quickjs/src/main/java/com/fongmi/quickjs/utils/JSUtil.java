@@ -1,6 +1,5 @@
 package com.fongmi.quickjs.utils;
 
-import com.github.catvod.utils.Util;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
