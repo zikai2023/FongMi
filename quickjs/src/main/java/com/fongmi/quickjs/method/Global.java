@@ -20,6 +20,8 @@ import com.whl.quickjs.wrapper.QuickJSContext;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
+import java.nio.Buffer;
+import java.nio.charset.CharacterCodingException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -153,6 +155,15 @@ public class Global {
         String result = Crypto.md5(text);
         Logger.t("md5X").d("text:%s\nresult:\n%s", text, result);
         return result;
+    }
+
+    @Keep
+    @JSMethod
+    public String gbkDecode(JSArray buffer) throws CharacterCodingException {
+        String result = JSUtil.gbkDecode(buffer);
+        Logger.t("gbkDecode").d("text:%s\nresult:\n%s", buffer, result);
+        return result;
+
     }
 
     @Keep
