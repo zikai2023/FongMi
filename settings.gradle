@@ -1,5 +1,19 @@
 pluginManagement {
     repositories {
+        maven { url "https://mirrors.huaweicloud.com/repository/maven/" }
+        maven { url 'https://developer.huawei.com/repo/' }
+	maven { url "https://chaquo.com/maven" }
+        maven { url "https://maven.aliyun.com/repository/central" }
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/google" }
+        maven { url "https://maven.aliyun.com/repository/spring" }
+        maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+        maven { url 'https://maven.aliyun.com/repository/apache-snapshots' }
+        maven { url 'https://maven.aliyun.com/repository/spring-plugin' }
+        maven { url 'https://maven.aliyun.com/repository/grails-core' }
+        maven {
+            url "https://jitpack.io"
+        }
         gradlePluginPortal()
         mavenCentral()
         jcenter()
@@ -9,6 +23,17 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        maven { url "https://mirrors.huaweicloud.com/repository/maven/" }
+        maven { url 'https://developer.huawei.com/repo/' }
+	maven { url "https://chaquo.com/maven" }
+        maven { url "https://maven.aliyun.com/repository/central" }
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/google" }
+        maven { url "https://maven.aliyun.com/repository/spring" }
+        maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+        maven { url 'https://maven.aliyun.com/repository/apache-snapshots' }
+        maven { url 'https://maven.aliyun.com/repository/spring-plugin' }
+        maven { url 'https://maven.aliyun.com/repository/grails-core' }
         mavenCentral()
         jcenter()
         google()
@@ -30,8 +55,8 @@ include ':tvbus'
 include ':catvod'
 include ':quickjs'
 include ':thunder'
-include ':youtube'
 include ':jianpian'
 include ':forcetech'
 include ':ijkplayer'
-rootProject.name = "TV"
+include ':pyramid'
+rootProject.name = "VOD"

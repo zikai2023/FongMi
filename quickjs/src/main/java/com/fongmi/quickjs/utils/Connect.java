@@ -34,7 +34,7 @@ public class Connect {
         try {
             JSObject jsObject = ctx.createNewJSObject();
             JSObject jsHeader = ctx.createNewJSObject();
-            setHeader(ctx, res, jsHeader);
+            setHeader(res, jsHeader);
             jsObject.setProperty("code", res.code());
             jsObject.setProperty("headers", jsHeader);
             if (req.getBuffer() == 0) jsObject.setProperty("content", new String(res.body().bytes(), req.getCharset()));
@@ -69,17 +69,12 @@ public class Connect {
         if (req.getData() != null && "json".equals(req.getPostType())) return getJsonBody(req);
         if (req.getData() != null && "form".equals(req.getPostType())) return getFormBody(req);
         if (req.getData() != null && "form-data".equals(req.getPostType())) return getFormDataBody(req);
-        if (req.getData() != null && "raw".equals(req.getPostType())) return getRawBody(req);
         if (req.getBody() != null && contentType != null) return RequestBody.create(req.getBody(), MediaType.get(contentType));
         return RequestBody.create("", null);
     }
 
     private static RequestBody getJsonBody(Req req) {
-        return RequestBody.create(req.getData().toString(), MediaType.get("application/json; charset=utf-8"));
-    }
-
-    private static RequestBody getRawBody(Req req) {
-        return RequestBody.create(req.getData().toString(), MediaType.get("application/json; charset=utf-8"));
+        return RequestBody.create(req.getData().toString(), MediaType.get("application/json"));
     }
 
     private static RequestBody getFormBody(Req req) {
@@ -97,12 +92,10 @@ public class Connect {
         return builder.build();
     }
 
-
-
-    private static void setHeader(QuickJSContext ctx, Response res, JSObject object) {
+    private static void setHeader(Response res, JSObject object) {
         for (Map.Entry<String, List<String>> entry : res.headers().toMultimap().entrySet()) {
             if (entry.getValue().size() == 1) object.setProperty(entry.getKey(), entry.getValue().get(0));
-            if (entry.getValue().size() >= 2) object.setProperty(entry.getKey(), JSUtil.toArray(ctx, entry.getValue()));
+            if (entry.getValue().size() >= 2) object.setProperty(entry.getKey(), String.join(";",entry.getValue()));
         }
     }
 }

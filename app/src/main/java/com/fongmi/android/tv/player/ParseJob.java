@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.player;
 
-import android.text.TextUtils;
-
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -63,9 +61,9 @@ public class ParseJob implements ParseCallback {
     }
 
     private String getClick(Result result) {
-        String click = VodConfig.get().getSite(result.getKey()).getClick();
-        if (!TextUtils.isEmpty(click)) return click;
-        return result.getClick();
+        if (!result.getClick().isEmpty()) return result.getClick();
+        if (!result.getJs().isEmpty()) return result.getJs();
+        return VodConfig.get().getSite(result.getKey()).getClick();
     }
 
     private void execute(Result result) {
@@ -111,10 +109,10 @@ public class ParseJob implements ParseCallback {
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
         String body = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute().body().string();
         JsonObject object = Json.parse(body).getAsJsonObject();
-        JsonObject t = object.has("data") ? object.getAsJsonObject("data") : new JsonObject();
-        String url = object.has("url") ? object.get("url").getAsString()
-                : t.has("url") ? t.get("url").getAsString(): "";
-        onParseSuccess(getHeader(object), url, item.getName());
+        object = object.has("data") ? object.getAsJsonObject("data") : object;
+        boolean illegal = body.contains("不存在") || body.contains("已过期");
+        String url = illegal ? "" : Json.safeString(object, "url");
+        checkResult(getHeader(object), url, item.getName(), error);
     }
 
     private void jsonExtend(String webUrl) throws Throwable {
@@ -149,12 +147,28 @@ public class ParseJob implements ParseCallback {
         }
     }
 
+    private void checkResult(Map<String, String> headers, String url, String from, boolean error) {
+        if (isPass(headers, url)) {
+            onParseSuccess(headers, url, from);
+        } else if (error) {
+            onParseError();
+        }
+    }
+
     private void checkResult(Result result) {
         result.setHeader(parse.getExt().getHeader());
         if (result.getUrl().isEmpty()) onParseError();
-        else if (result.getParse() == 1) {
-            startWeb(result.getHeaders(), UrlUtil.convert(result.getUrl().v()), result.getIsVideo());
-        } else onParseSuccess(result.getHeaders(), result.getUrl().v(), result.getJxFrom());
+        else if (result.getParse() == 1) startWeb(result.getHeaders(), UrlUtil.convert(result.getUrl().v()));
+        else onParseSuccess(result.getHeaders(), result.getUrl().v(), result.getJxFrom());
+    }
+
+    private boolean isPass(Map<String, String> headers, String url) {
+        try {
+            if (url.length() < 40) return false;
+            return OkHttp.newCall(url, Headers.of(headers)).execute().code() == 200;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void startWeb(Parse item, String webUrl) {
@@ -175,11 +189,7 @@ public class ParseJob implements ParseCallback {
 
     private Map<String, String> getHeader(JsonObject object) {
         Map<String, String> headers = new HashMap<>();
-        for (Map.Entry<String, JsonElement> entry : object.entrySet())
-            if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT)
-                    || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER)
-                    || entry.getKey().equalsIgnoreCase("ua"))
-                headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
+        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER)) headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
         if (headers.isEmpty()) return parse.getHeaders();
         return headers;
     }

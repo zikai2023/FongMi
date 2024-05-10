@@ -21,8 +21,6 @@
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Text <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Path <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.ElementList <fields>; }
--keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Root <fields>; }
--keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Attribute <fields>; }
 
 # OkHttp
 -dontwarn okhttp3.**
@@ -36,24 +34,13 @@
 # Cling
 -keep class org.fourthline.cling.** { *; }
 -keep class javax.xml.** { *; }
--dontwarn org.ietf.jgss.**
--dontwarn com.sun.net.**
--dontwarn sun.net.**
--dontwarn java.awt.**
--dontwarn javax.**
 
 # Cronet
 -keep class org.chromium.net.** { *; }
 -keep class com.google.net.cronet.** { *; }
 
 # EXO
--dontwarn org.xmlpull.v1.**
--dontwarn org.kxml2.io.**
--dontwarn android.content.res.**
--dontwarn org.slf4j.impl.StaticLoggerBinder
--keep class org.xmlpull.** { *; }
--keepclassmembers class org.xmlpull.** { *; }
--keep class androidx.media3.** { *; }
+-keep class org.xmlpull.v1.** { *; }
 
 # IJK
 -keep class tv.danmaku.ijk.media.player.** { *; }
@@ -61,12 +48,14 @@
 # Jianpian
 -keep class com.p2p.** { *; }
 
+# Mozilla
+-keep class org.mozilla.javascript.** { *; }
+
 # Nano
 -keep class fi.iki.elonen.** { *; }
 
 # QuickJS
 -keep class com.whl.quickjs.** { *; }
--keep class com.fongmi.quickjs.** { *; }
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }
@@ -92,11 +81,11 @@
     public static ** valueOf(java.lang.String);
 }
 
-# bean
--keep class com.fongmi.android.tv.bean.** { *; }
+# XXpermissions
+-keep class com.hjq.permissions.** {*;}
 
-# x5
--dontwarn dalvik.**
--dontwarn com.tencent.smtt.**
--keep class com.tencent.smtt.** { *; }
--keep class com.tencent.tbs.** { *; }
+-keep class com.github.tvbox.osc.util.**  {*;}
+-keep class * extends com.github.tvbox.osc.util.LOG
+-keep class * extends com.github.tvbox.osc.util.PyUtil
+
+-keep class com.undcover.freedom.pyramid.** {*;}

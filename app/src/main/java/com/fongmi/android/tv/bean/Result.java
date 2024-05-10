@@ -239,6 +239,14 @@ public class Result implements Parcelable {
         return TextUtils.isEmpty(click) ? "" : click;
     }
 
+    public void setJs(String js) {
+        this.js = js;
+    }
+
+    public String getJs() {
+        return TextUtils.isEmpty(js) ? "" : js;
+    }
+
     public void setClick(String click) {
         this.click = click;
     }
