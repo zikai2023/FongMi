@@ -275,7 +275,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     }
 
     private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(BuildConfig.FLAVOR);
     }
 
     private void setDoh(View view) {
