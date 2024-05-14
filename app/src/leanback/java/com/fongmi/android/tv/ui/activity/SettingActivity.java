@@ -77,6 +77,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
+        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         setCacheText();
     }
 
@@ -96,6 +97,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
+        mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmu.setOnClickListener(this::onDanmu);
@@ -113,6 +115,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.doh.setOnClickListener(this::setDoh);
+        mBinding.about.setOnClickListener(this::onAbout);
     }
 
     @Override
@@ -164,8 +167,9 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
             case 0:
                 setCacheText();
                 Notify.dismiss();
-                RefreshEvent.video();
                 RefreshEvent.history();
+                RefreshEvent.config();
+                RefreshEvent.video();
                 mBinding.vodUrl.setText(VodConfig.getDesc());
                 mBinding.liveUrl.setText(LiveConfig.getDesc());
                 mBinding.wallUrl.setText(WallConfig.getDesc());
@@ -277,6 +281,10 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         SettingCustomActivity.start(this);
     }
 
+    private void onAbout(View view) {
+        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+    }
+
     private void setDoh(View view) {
         DohDialog.create(this).index(getDohIndex()).show();
     }
@@ -308,9 +316,22 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
+                VodConfig.get().getConfig().json("").save();
                 setCacheText();
             }
         });
+    }
+
+    private boolean onCacheLongClick(View view) {
+        FileUtil.clearCache(new Callback() {
+            @Override
+            public void success() {
+                setCacheText();
+                Config config = VodConfig.get().getConfig().json("").save();
+                if (!config.isEmpty()) setConfig(config);
+            }
+        });
+        return true;
     }
 
     private void onBackup(View view) {
@@ -326,5 +347,11 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         Setting.putBackupAuto(!Setting.isBackupAuto());
         mBinding.backupText.setText(AppDatabase.getDate());
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        RefreshEvent.history();
     }
 }

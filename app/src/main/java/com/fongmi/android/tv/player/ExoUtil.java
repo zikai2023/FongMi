@@ -27,6 +27,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.RenderersFactory;
+import androidx.media3.exoplayer.source.ConcatenatingMediaSource2;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
@@ -43,12 +44,14 @@ import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -136,12 +139,25 @@ public class ExoUtil {
         if (sub != null) subs.add(sub);
         String mimeType = getMimeType(format, errorCode);
         if (uri.getUserInfo() != null) headers.put(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo()));
+        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, format, subs, sub, drm, errorCode);
+        if (url.contains(".m3u8") && Setting.isRemoveAd()) uri = Uri.parse(Server.get().getAddress().concat("/m3u8?url=").concat(URLEncoder.encode(url)));
         return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(uri, mimeType, subs, drm));
+    }
+
+    private static MediaSource getConcat(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int errorCode) {
+        ConcatenatingMediaSource2.Builder builder = new ConcatenatingMediaSource2.Builder();
+        for (String split : url.split("\\*\\*\\*")) {
+            String[] info = split.split("\\|\\|\\|");
+            if (info.length < 2) continue;
+            long duration = Long.parseLong(info[1]);
+            builder.add(getSource(headers, info[0], format, subs, sub, drm, errorCode), duration);
+        }
+        return builder.build();
     }
 
     private static MediaItem getMediaItem(Uri uri, String mimeType, List<Sub> subs, Drm drm) {
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
-        if (subs.size() > 0) builder.setSubtitleConfigurations(getSubtitles(subs));
+        if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
         if (mimeType != null) builder.setMimeType(mimeType);
         return builder.build();

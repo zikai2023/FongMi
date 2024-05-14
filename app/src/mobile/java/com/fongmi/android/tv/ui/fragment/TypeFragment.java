@@ -83,7 +83,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private boolean isHome() {
-        return getTypeId().equals("home");
+        return "home".equals(getTypeId());
     }
 
     private Site getSite() {
@@ -114,7 +114,6 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     protected void initEvent() {
-        mBinding.swipeLayout.setEnabled(!isHome());
         mBinding.swipeLayout.setOnRefreshListener(this);
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
     }
@@ -140,15 +139,21 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         mViewModel.result.observe(getViewLifecycleOwner(), this::setAdapter);
     }
 
+    private void getHome() {
+        mViewModel.homeContent();
+        mAdapter.clear();
+    }
+
+
     private void getVideo() {
         mScroller.reset();
         getVideo(getTypeId(), "1");
     }
 
     private void getVideo(String typeId, String page) {
-        if (page.equals("1")) mAdapter.clear();
-        if (page.equals("1") && !mBinding.swipeLayout.isRefreshing()) mBinding.progressLayout.showProgress();
-        if (isHome() && page.equals("1")) setAdapter(getParent().getResult());
+        if ("1".equals(page)) mAdapter.clear();
+        if ("1".equals(page) && !mBinding.swipeLayout.isRefreshing()) mBinding.progressLayout.showProgress();
+        if (isHome() && "1".equals(page)) setAdapter(getParent().getResult());
         else mViewModel.categoryContent(getKey(), typeId, page, true, mExtends);
     }
 
@@ -210,7 +215,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     public void onRefresh() {
-        getVideo();
+        if (isHome()) getHome();
+        else getVideo();
     }
 
     @Override

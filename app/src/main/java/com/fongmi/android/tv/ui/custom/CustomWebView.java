@@ -4,28 +4,33 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.net.http.SslError;
 import android.text.TextUtils;
 import android.view.ViewGroup;
-import android.webkit.CookieManager;
-import android.webkit.SslErrorHandler;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import com.fongmi.android.tv.utils.Notify;
+import com.tencent.smtt.export.external.interfaces.SslError;
+import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
+import com.tencent.smtt.export.external.interfaces.WebResourceResponse;
+import com.tencent.smtt.sdk.QbSdk;
+import com.tencent.smtt.sdk.WebChromeClient;
+import com.tencent.smtt.sdk.WebView;
+import com.tencent.smtt.sdk.WebViewClient;
 
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
+import com.github.catvod.net.OkCookieJar;
 import com.google.common.net.HttpHeaders;
 import com.orhanobut.logger.Logger;
 
@@ -49,12 +54,23 @@ public class CustomWebView extends WebView {
     private String key;
 
     public static CustomWebView create(@NonNull Context context) {
+        initTbs();
         return new CustomWebView(context);
     }
 
     public CustomWebView(@NonNull Context context) {
         super(context);
         initSettings();
+        showTbs();
+    }
+
+    private static void initTbs() {
+        if (Setting.getParseWebView() == 0) QbSdk.forceSysWebView();
+        else QbSdk.unForceSysWebView();
+    }
+
+    private void showTbs() {
+        if (this.getIsX5Core())  Notify.show(R.string.x5webview_parsing);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -64,6 +80,7 @@ public class CustomWebView extends WebView {
         getSettings().setSupportZoom(true);
         getSettings().setUseWideViewPort(true);
         getSettings().setDatabaseEnabled(true);
+        getSettings().setBlockNetworkImage(true);
         getSettings().setDomStorageEnabled(true);
         getSettings().setJavaScriptEnabled(true);
         getSettings().setBuiltInZoomControls(true);
@@ -73,8 +90,8 @@ public class CustomWebView extends WebView {
         getSettings().setMediaPlaybackRequiresUserGesture(false);
         getSettings().setJavaScriptCanOpenWindowsAutomatically(false);
         getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true);
         setWebViewClient(webViewClient());
+        setWebChromeClient(webChromeClient());
     }
 
     public CustomWebView start(String key, String from, Map<String, String> headers, String url, String click, ParseCallback callback, boolean detect) {
@@ -89,14 +106,15 @@ public class CustomWebView extends WebView {
     }
 
     private void start(String url, Map<String, String> headers) {
+        OkCookieJar.setAcceptThirdPartyCookies(this);
         checkHeader(url, headers);
         loadUrl(url, headers);
     }
 
     private void checkHeader(String url, Map<String, String> headers) {
         for (String key : headers.keySet()) {
-            if (key.equalsIgnoreCase(HttpHeaders.COOKIE)) CookieManager.getInstance().setCookie(url, headers.get(key));
-            if (key.equalsIgnoreCase(HttpHeaders.USER_AGENT)) getSettings().setUserAgentString(headers.get(key));
+            if (HttpHeaders.COOKIE.equalsIgnoreCase(key)) OkCookieJar.sync(url, headers.get(key));
+            if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) getSettings().setUserAgentString(headers.get(key));
         }
     }
 
@@ -110,7 +128,7 @@ public class CustomWebView extends WebView {
                 if (TextUtils.isEmpty(host) || VodConfig.get().getAds().contains(host)) return empty;
                 if (url.contains("challenges.cloudflare.com/cdn-cgi")) App.post(() -> showDialog());
                 if (detect && url.contains("player/?url=")) onParseAdd(headers, url);
-                else if (isVideoFormat(url)) interrupt(headers, url);
+                else if (isVideoFormat(url)) onParseSuccess(headers, url);
                 return super.shouldInterceptRequest(view, request);
             }
 
@@ -136,6 +154,19 @@ public class CustomWebView extends WebView {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return false;
+            }
+        };
+    }
+
+    private WebChromeClient webChromeClient() {
+        return new WebChromeClient() {
+            @Override
+            public Bitmap getDefaultVideoPoster() {
+                try {
+                    return BitmapFactory.decodeResource(App.get().getResources(), R.drawable.ic_logo);
+                } catch (Throwable e) {
+                    return super.getDefaultVideoPoster();
+                }
             }
         };
     }
@@ -177,12 +208,6 @@ public class CustomWebView extends WebView {
         } catch (Exception ignored) {
             return Sniffer.isVideoFormat(url);
         }
-    }
-
-    private void interrupt(Map<String, String> headers, String url) {
-        String cookie = CookieManager.getInstance().getCookie(url);
-        if (cookie != null) headers.put(HttpHeaders.COOKIE, cookie);
-        onParseSuccess(headers, url);
     }
 
     private void onParseAdd(Map<String, String> headers, String url) {

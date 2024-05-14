@@ -10,10 +10,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -83,8 +85,14 @@ public class Util {
         }
     }
 
-    public static String getDeviceId() {
-        return Settings.Secure.getString(Init.context().getContentResolver(), Settings.Secure.ANDROID_ID);
+    public static String getAndroidId() {
+        try {
+            String id = Settings.Secure.getString(Init.context().getContentResolver(), Settings.Secure.ANDROID_ID);
+            if (TextUtils.isEmpty(id)) throw new NullPointerException();
+            return id;
+        } catch (Exception e) {
+            return "0000000000000000";
+        }
     }
 
     public static String getDeviceName() {
@@ -171,6 +179,17 @@ public class Util {
             }
         }
         return false;
+    }
+
+    public static int batteryLevel() {
+        BatteryManager batteryManager = (BatteryManager) App.get().getSystemService(Context.BATTERY_SERVICE);
+        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+    }
+
+    public static void restartApp(Activity activity) {
+        Intent intent = activity.getBaseContext().getPackageManager().getLaunchIntentForPackage(activity.getBaseContext().getPackageName());
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        activity.startActivity(intent);
     }
 
 }
