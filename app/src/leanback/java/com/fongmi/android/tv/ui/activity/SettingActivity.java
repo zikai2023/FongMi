@@ -41,7 +41,6 @@ import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,7 +79,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(BuildConfig.FLAVOR);
         setCacheText();
     }
 
