@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
@@ -34,17 +35,20 @@ import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
 
     private ActivitySettingBinding mBinding;
+    private String[] backup;
     private int type;
 
     public static void start(Activity activity) {
@@ -72,11 +76,11 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.backupText.setText("");
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
-        mBinding.aboutText.setText(BuildConfig.FLAVOR);
+        mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
+        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         setCacheText();
     }
 
@@ -98,6 +102,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
+        mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmu.setOnClickListener(this::onDanmu);
         mBinding.version.setOnClickListener(this::onVersion);
@@ -106,7 +111,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupAuto);
+        mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
@@ -327,12 +332,18 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         return true;
     }
 
+    private void onRestore(View view) {
+        Notify.show("不支持的功能");
+    }
+
     private void onBackup(View view) {
         Notify.show("不支持的功能");
     }
 
-    private boolean onBackupAuto(View view) {
-        Notify.show("不支持的功能");
+    private boolean onBackupMode(View view) {
+        int index = Setting.getBackupMode();
+        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
+        mBinding.backupText.setText(backup[index]);
         return true;
     }
 
