@@ -11,7 +11,7 @@ android {
         minSdk 16
         targetSdk 28
         versionCode 234
-        versionName "2.3.4"
+        versionName "0524"
         multiDexEnabled true
         ndk { abiFilters "armeabi-v7a" }
         javaCompileOptions {
@@ -74,6 +74,7 @@ dependencies {
     implementation project(':pyramid')
     implementation project(':quickjs')
     implementation project(':thunder')
+    implementation project(':youtube')
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')

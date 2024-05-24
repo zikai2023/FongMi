@@ -1,10 +1,12 @@
 package com.fongmi.android.tv.server.process;
 
+import android.os.Environment;
 import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
@@ -143,6 +145,21 @@ public class Action implements Process {
         switch (type) {
             case "apk":
                 apk(params, files);
+                break;
+            case "vod_config":
+                vodConfig(params);
+                break;
+            case "wall_config":
+                wallConfig(params, files);
+                break;
+            case "push_restore":
+                pushRestore(params, files);
+                break;
+            case "pull_restore":
+                pullRestore(params, files);
+                break;
+            default:
+                break;
         }
     }
 
@@ -237,9 +254,66 @@ public class Action implements Process {
                 File apk = Path.cache(System.currentTimeMillis() + "-" + fn);
                 Path.copy(temp, apk);
                 FileUtil.openFile(apk);
-            } else {
-                temp.delete();
             }
+            temp.delete();
+            break;
         }
+    }
+
+    private void vodConfig(Map<String, String> params) {
+        String url = params.get("url");
+        if (TextUtils.isEmpty(url)) return;
+        App.post(() -> Notify.progress(App.activity()));
+        VodConfig.load(Config.find(url, 0), getCallback());
+    }
+
+    private void wallConfig(Map<String, String> params, Map<String, String> files) {
+        for (String k : files.keySet()) {
+            String fn = params.get(k);
+            File temp = new File(files.get(k));
+            if (!temp.exists()) continue;
+            File wall = new File(Path.download(), fn);
+            Path.copy(temp, wall);
+            App.post(() -> Notify.progress(App.activity()));
+            WallConfig.load(Config.find("file://" + Environment.DIRECTORY_DOWNLOADS + "/" + fn, 2), new Callback() {
+                @Override
+                public void success() {
+                    Notify.dismiss();
+                }
+                @Override
+                public void error(String msg) {
+                    Notify.dismiss();
+                    Notify.show(msg);
+                }
+            });
+            temp.delete();
+            break;
+        }
+    }
+
+    private void pushRestore(Map<String, String> params, Map<String, String> files) {
+        App.post(() -> Notify.show("不支持的功能"));
+    }
+
+    private void pullRestore(Map<String, String> params, Map<String, String> files) {
+        App.post(() -> Notify.show("不支持的功能"));
+    }
+
+    private Callback getCallback() {
+        return new Callback() {
+            @Override
+            public void success() {
+                Notify.dismiss();
+                RefreshEvent.history();
+                RefreshEvent.config();
+                RefreshEvent.video();
+            }
+
+            @Override
+            public void error(String msg) {
+                Notify.dismiss();
+                Notify.show(msg);
+            }
+        };
     }
 }
