@@ -5,12 +5,14 @@ import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
@@ -28,6 +30,9 @@ import java.util.Objects;
 
 import fi.iki.elonen.NanoHTTPD;
 import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class Action implements Process {
 
@@ -292,11 +297,40 @@ public class Action implements Process {
     }
 
     private void pushRestore(Map<String, String> params, Map<String, String> files) {
-        App.post(() -> Notify.show("不支持的功能"));
+        for (String k : files.keySet()) {
+            String fn = params.get(k);
+            File temp = new File(files.get(k));
+            if (!temp.exists()) continue;
+            File restore = Path.cache(System.currentTimeMillis() + "-" + fn);
+            Path.copy(temp, restore);
+            AppDatabase.restore(restore, new Callback() {
+                @Override
+                public void success() {
+                    App.post(() -> Notify.progress(App.activity()));
+                    App.post(() -> initConfig(), 3000);
+                }
+            });
+            temp.delete();
+            break;
+        }
     }
 
     private void pullRestore(Map<String, String> params, Map<String, String> files) {
-        App.post(() -> Notify.show("不支持的功能"));
+        String ip = params.get("ip");
+        if (TextUtils.isEmpty(ip)) return;
+        AppDatabase.backup(new Callback() {
+            @Override
+            public void success(String path) {
+                String type = "push_restore";
+                File file = new File(path);
+                MediaType mediaType = MediaType.parse("multipart/form-data");
+                MultipartBody.Builder body = new MultipartBody.Builder();
+                body.setType(MultipartBody.FORM);
+                body.addFormDataPart("name", file.getName());
+                body.addFormDataPart("files-0", file.getName(), RequestBody.create(mediaType, file));
+                OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_TRANSMIT), ip.concat("/action?do=transmit&type=").concat(type), body.build()).enqueue(getCallback());
+            }
+        });
     }
 
     private Callback getCallback() {
@@ -315,5 +349,11 @@ public class Action implements Process {
                 Notify.show(msg);
             }
         };
+    }
+
+    private void initConfig() {
+        WallConfig.get().init();
+        LiveConfig.get().init().load();
+        VodConfig.get().init().load(getCallback());
     }
 }
