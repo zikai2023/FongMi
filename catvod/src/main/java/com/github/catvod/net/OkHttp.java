@@ -49,7 +49,7 @@ public class OkHttp {
     }
 
     public static Dns dns() {
-        return get().dns != null ? get().dns : Dns.SYSTEM;
+        return get().dns != null ? get().dns : new OkDns();
     }
 
     public void setDoh(Doh doh) {
@@ -90,6 +90,15 @@ public class OkHttp {
     public static String string(String url) {
         try {
             return url.startsWith("http") ? newCall(url).execute().body().string() : "";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public static String string(String url, Map<String, String> headers) {
+        try {
+            return newCall(url, Headers.of(headers)).execute().body().string();
         } catch (Exception e) {
             e.printStackTrace();
             return "";
