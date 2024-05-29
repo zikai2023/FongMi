@@ -87,6 +87,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         return Setting.getDecode(player) == HARD;
     }
 
+    public static boolean isSoft(int player) {
+        return Setting.getDecode(player) == SOFT;
+    }
+
     public boolean isExo() {
         return player == EXO;
     }
@@ -225,6 +229,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         return danmuView != null && danmuView.isPrepared();
     }
 
+    public boolean canAdjustSpeed() {
+        return isIjk() || (isExo() && !Setting.isTunnel());
+    }
+
     public boolean haveTrack(int type) {
         if (isExo() && exoPlayer != null) return ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
         if (isIjk() && ijkPlayer != null) return ijkPlayer.haveTrack(type);
@@ -274,7 +282,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     public String setSpeed(float speed) {
-        if (exoPlayer != null) exoPlayer.setPlaybackSpeed(this.speed = speed);
+        if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(this.speed = speed);
         if (ijkPlayer != null) ijkPlayer.setSpeed(this.speed = speed);
         return getSpeedText();
     }
