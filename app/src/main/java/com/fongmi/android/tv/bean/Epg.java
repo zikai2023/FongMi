@@ -2,20 +2,20 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
+import android.util.Log;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 
 public class Epg {
-
-    @SerializedName("key")
+    private final static String TAG = Epg.class.getName();
+    @SerializedName("channel_name")
     private String key;
     @SerializedName("date")
     private String date;
@@ -26,6 +26,8 @@ public class Epg {
 
     public static Epg objectFrom(String str, String key, SimpleDateFormat format) {
         try {
+            Log.d(TAG, String.format(Locale.US, "objectFrom: str=%s, key=%s", str, key));
+
             Epg item = App.gson().fromJson(str, Epg.class);
             item.setTime(format);
             item.setKey(key);

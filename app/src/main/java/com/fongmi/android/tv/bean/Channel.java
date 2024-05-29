@@ -13,11 +13,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class Channel {
 
@@ -31,6 +27,8 @@ public class Channel {
     private String epg;
     @SerializedName("name")
     private String name;
+    @SerializedName("tvgname")
+    private String tvgname;
     @SerializedName("ua")
     private String ua;
     @SerializedName("click")
@@ -326,8 +324,14 @@ public class Channel {
         if (!live.getCatchup().isEmpty() && getCatchup().isEmpty()) setCatchup(live.getCatchup());
         if (live.getReferer().length() > 0 && getReferer().isEmpty()) setReferer(live.getReferer());
         if (live.getPlayerType() != -1 && getPlayerType() == -1) setPlayerType(live.getPlayerType());
-        if (!getEpg().startsWith("http")) setEpg(live.getEpg().replace("{name}", getName()).replace("{epg}", getEpg()));
-        if (!getLogo().startsWith("http")) setLogo(live.getLogo().replace("{name}", getName()).replace("{logo}", getLogo()));
+        // 优先使用tvgname
+        String tvg_name = getTvgname();
+        if (Objects.equals(tvg_name, "")){
+            tvg_name = getName();
+        }
+
+        if (!getEpg().startsWith("http")) setEpg(live.getEpg().replace("{name}", tvg_name ).replace("{epg}", getEpg()));
+        if (!getLogo().startsWith("http")) setLogo(live.getLogo().replace("{name}", tvg_name).replace("{logo}", getLogo()));
     }
 
     public void setLine(String line) {
@@ -358,6 +362,7 @@ public class Channel {
         setDrm(item.getDrm());
         setEpg(item.getEpg());
         setUa(item.getUa());
+        setTvgname(item.getTvgname());
         return this;
     }
 
@@ -375,5 +380,13 @@ public class Channel {
         if (!(obj instanceof Channel)) return false;
         Channel it = (Channel) obj;
         return getName().equals(it.getName()) || (!getNumber().isEmpty() && getNumber().equals(it.getNumber()));
+    }
+
+    public String getTvgname() {
+        return tvgname;
+    }
+
+    public void setTvgname(String tvgname) {
+        this.tvgname = tvgname;
     }
 }

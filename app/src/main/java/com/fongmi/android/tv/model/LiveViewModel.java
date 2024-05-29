@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.model;
 
+import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -25,6 +26,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class LiveViewModel extends ViewModel {
+
+    private final static String TAG = LiveViewModel.class.getName();
 
     private static final int LIVE = 0;
     private static final int EPG = 1;
@@ -61,8 +64,11 @@ public class LiveViewModel extends ViewModel {
     public void getEpg(Channel item) {
         String date = formatDate.format(new Date());
         String url = item.getEpg().replace("{date}", date);
+        Log.d(TAG, String.format(Locale.US, "getEpg: date=%s, url=%s", date, url));
         execute(EPG, () -> {
+            Log.d(TAG, String.format(Locale.US, "Before: name=%s, catchup=%s, data=%s", item.getName(), item.getCatchup().getSource(), item.getData().getList()));
             if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getName(), formatTime));
+            Log.d(TAG, String.format(Locale.US, "After: name=%s, catchup=%s, data=%s", item.getName(), item.getCatchup().getSource(), item.getData().getList()));
             return item.getData().selected();
         });
     }
@@ -80,7 +86,34 @@ public class LiveViewModel extends ViewModel {
         execute(URL, () -> {
             item.setMsg(null);
             Source.get().stop();
-            item.setUrl(item.getCurrent() + item.getCatchup().format(data));
+
+            Log.d(TAG, String.format(Locale.US, "catchup: type=%s, source=%s", item.getCatchup().getType(), item.getCatchup().getSource()));
+            //如果是#EXTINF: 上备注了 catchup = default ,则是替换整个url,实现了直播时用组播源,回看使用rtsp源
+            if(item.getCatchup().getType().equals("default")){
+                item.setUrl(item.getCatchup().format(data));
+            }
+            else{
+                /**
+                 * 更新项的URL。
+                 * 此方法检查当前项的URL中是否包含问号，如果包含，会在URL末尾添加经过格式化的数据，
+                 * 并且替换掉任何现有的"?playseek"为"&playseek"。如果URL中不包含问号，则直接在末尾添加格式化的数据。
+                 *
+                 * @param item 代表待更新URL的项
+                 * @param data 用于格式化和追加到URL的数据
+                 */
+                if (item.getCurrent().indexOf('?') != -1)
+                {
+                    // 如果当前URL中包含问号，追加格式化后的数据到URL，并替换任何存在的"?playseek"为"&playseek"
+                    item.setUrl(item.getCurrent().replace("PLTV","TVOD") + item.getCatchup().format(data).replace("?playseek","&playseek"));
+                }
+                else{
+                    // 如果当前URL中不包含问号，直接追加格式化后的数据到URL
+                    item.setUrl(item.getCurrent().replace("PLTV","TVOD") + item.getCatchup().format(data).replace("&playseek","?playseek"));
+                }
+
+            }
+            Log.d(TAG, String.format(Locale.US, "catchup after: url=%s", item.getUrl()));
+
             return item;
         });
     }
