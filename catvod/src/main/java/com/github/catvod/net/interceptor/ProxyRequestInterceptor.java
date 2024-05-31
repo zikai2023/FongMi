@@ -24,11 +24,11 @@ public class ProxyRequestInterceptor implements Interceptor {
         Request request = chain.request();
         try {
             return chain.proceed(request);
-        } catch (IOException e) {
+        } catch (Exception e) {
             try {
                 selector.getHosts().add(request.url().host());
                 return chain.proceed(request);
-            } catch (IOException e2) {
+            } catch (Exception e2) {
                 selector.getHosts().remove(request.url().host());
                 throw e;
             }
