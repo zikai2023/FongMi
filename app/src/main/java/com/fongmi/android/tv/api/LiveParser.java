@@ -26,8 +26,9 @@ public class LiveParser {
 
     private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
+    private static final Pattern TVG_NAME = Pattern.compile(".*tvg-name=\"(.?|.+?)\".*");
+    private static final Pattern TVG_LOGO = Pattern.compile(".*tvg-logo=\"(.?|.+?)\".*");
     private static final Pattern GROUP = Pattern.compile(".*group-title=\"(.?|.+?)\".*");
-    private static final Pattern LOGO = Pattern.compile(".*tvg-logo=\"(.?|.+?)\".*");
     private static final Pattern NAME = Pattern.compile(".*,(.+?)$");
 
     private static String extract(String line, Pattern pattern) {
@@ -38,14 +39,15 @@ public class LiveParser {
 
     public static void start(Live live) {
         if (live.getGroups().size() > 0) return;
-        if (live.getType() == 0) text(live, getText(live.getUrl(), live.getHeaders()));
-        if (live.getType() == 1) json(live, getText(live.getUrl(), live.getHeaders()));
-        if (live.getType() == 2) proxy(live, getText(live.getUrl(), live.getHeaders()));
+        if (live.getType() == 0) text(live, getText(live));
+        if (live.getType() == 1) json(live, getText(live));
+        if (live.getType() == 2) proxy(live, getText(live));
     }
 
     public static void text(Live live, String text) {
         int number = 0;
         if (live.getGroups().size() > 0) return;
+        text = text.replace("\r\n", "\n");
         if (text.contains("#EXTM3U")) m3u(live, text);
         else txt(live, text);
         for (Group group : live.getGroups()) {
@@ -69,7 +71,6 @@ public class LiveParser {
         Setting setting = Setting.create();
         Catchup catchup = Catchup.create();
         Channel channel = Channel.create("");
-        text = text.replace("\r\n", "\n");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             if (setting.find(line)) {
@@ -80,8 +81,12 @@ public class LiveParser {
             } else if (line.startsWith("#EXTINF:")) {
                 Group group = live.find(Group.create(extract(line, GROUP), live.isPass()));
                 channel = group.find(Channel.create(extract(line, NAME)));
-                channel.setLogo(extract(line, LOGO));
-                channel.setCatchup(catchup);
+                channel.setTvgName(extract(line, TVG_NAME));
+                channel.setLogo(extract(line, TVG_LOGO));
+                Catchup unknown = Catchup.create();
+                unknown.setType(extract(line, CATCHUP));
+                unknown.setSource(extract(line, CATCHUP_SOURCE));
+                channel.setCatchup(Catchup.decide(unknown, catchup));
             } else if (!line.startsWith("#") && line.contains("://")) {
                 String[] split = line.split("\\|");
                 if (split.length > 1) setting.headers(Arrays.copyOfRange(split, 1, split.length));
@@ -93,10 +98,10 @@ public class LiveParser {
 
     private static void txt(Live live, String text) {
         Setting setting = Setting.create();
-        text = text.replace("\r\n", "\n");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             String[] split = line.split(",");
+            int index = line.indexOf(",") + 1;
             if (setting.find(line)) setting.check(line);
             if (line.contains("#genre#")) setting.clear();
             if (line.contains("#genre#")) live.getGroups().add(Group.create(split[0], live.isPass()));
@@ -104,7 +109,7 @@ public class LiveParser {
             if (split.length > 1 && split[1].contains("://")) {
                 Group group = live.getGroups().get(live.getGroups().size() - 1);
                 Channel channel = group.find(Channel.create(split[0]));
-                channel.addUrls(line.substring(line.indexOf(",") + 1).split("#"));
+                channel.addUrls(line.substring(index).split("#"));
                 setting.copy(channel);
             }
         }
@@ -120,6 +125,10 @@ public class LiveParser {
                 group.add(channel);
             }
         }
+    }
+
+    private static String getText(Live live) {
+        return getText(live.getUrl(), live.getHeaders());
     }
 
     private static String getText(String url, Map<String, String> header) {
