@@ -4,7 +4,7 @@ on:
   push:
     # 根据branch或者tags来触发
     branches:
-      - dev
+      - fongmi
   workflow_dispatch:
 
 jobs:
