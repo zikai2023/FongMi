@@ -590,6 +590,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onItemClick(Channel item) {
+        if(item.isSelected())
+        {
+            showEpg(item);
+            return;
+        }
         mGroup.setPosition(mBinding.channel.getSelectedPosition());
         setChannel(item.group(mGroup));
         hideUI();

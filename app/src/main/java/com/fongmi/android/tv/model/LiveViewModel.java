@@ -12,6 +12,7 @@ import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.exception.ExtractException;
+import com.fongmi.android.tv.player.EpgUtil;
 import com.fongmi.android.tv.player.Source;
 import com.github.catvod.net.OkHttp;
 
@@ -19,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +38,7 @@ public class LiveViewModel extends ViewModel {
     public MutableLiveData<Channel> url;
     public MutableLiveData<Live> live;
     public MutableLiveData<Epg> epg;
+    public Map<String, Epg> egpMap;
 
     private ExecutorService executor1;
     private ExecutorService executor2;
@@ -47,6 +50,10 @@ public class LiveViewModel extends ViewModel {
         this.live = new MutableLiveData<>();
         this.epg = new MutableLiveData<>();
         this.url = new MutableLiveData<>();
+        EpgUtil epgUtil = new EpgUtil();
+        String url = "https://epg.erw.cc/cc.xml";
+        Map<String, Epg> epgMap = epgUtil.parseEpgFromXmlSource(url);
+        this.egpMap = epgMap;
     }
 
     public void getLive(Live item) {
@@ -59,6 +66,13 @@ public class LiveViewModel extends ViewModel {
     }
 
     public void getEpg(Channel item) {
+        Epg epg = this.egpMap.get(item.getTvgName());
+        if (epg != null)
+        {
+            item.setData(epg);
+            return ;
+        }
+
         String date = formatDate.format(new Date());
         String url = item.getEpg().replace("{date}", date);
         execute(EPG, () -> {

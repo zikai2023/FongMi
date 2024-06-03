@@ -32,6 +32,13 @@ public class EpgData {
         this.title = title;
     }
 
+    public void setStart(String start) {
+        this.start = start;
+    }
+    public void setEnd(String end) {
+        this.end = end;
+    }
+
     public String getStart() {
         return TextUtils.isEmpty(start) ? "" : start;
     }
