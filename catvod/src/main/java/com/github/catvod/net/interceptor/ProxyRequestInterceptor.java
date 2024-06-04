@@ -25,6 +25,9 @@ public class ProxyRequestInterceptor implements Interceptor {
         try {
             return chain.proceed(request);
         } catch (Exception e) {
+            if (selector.getHosts().contains(request.url().host())) {
+                throw e;
+            }
             try {
                 selector.getHosts().add(request.url().host());
                 return chain.proceed(request);
