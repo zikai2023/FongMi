@@ -38,7 +38,6 @@ public class LiveViewModel extends ViewModel {
     public MutableLiveData<Channel> url;
     public MutableLiveData<Live> live;
     public MutableLiveData<Epg> epg;
-    public Map<String, Epg> egpMap;
 
     private ExecutorService executor1;
     private ExecutorService executor2;
@@ -50,10 +49,6 @@ public class LiveViewModel extends ViewModel {
         this.live = new MutableLiveData<>();
         this.epg = new MutableLiveData<>();
         this.url = new MutableLiveData<>();
-        EpgUtil epgUtil = new EpgUtil();
-        String url = "https://epg.erw.cc/cc.xml";
-        Map<String, Epg> epgMap = epgUtil.parseEpgFromXmlSource(url);
-        this.egpMap = epgMap;
     }
 
     public void getLive(Live item) {
@@ -66,12 +61,7 @@ public class LiveViewModel extends ViewModel {
     }
 
     public void getEpg(Channel item) {
-        Epg epg = this.egpMap.get(item.getTvgName());
-        if (epg != null)
-        {
-            item.setData(epg);
-            return ;
-        }
+
 
         String date = formatDate.format(new Date());
         String url = item.getEpg().replace("{date}", date);
@@ -79,6 +69,17 @@ public class LiveViewModel extends ViewModel {
             if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getName(), formatTime));
             return item.getData().selected();
         });
+    }
+
+    public void getEpg(Channel item,Epg epg) {
+        String date = formatDate.format(new Date());
+        String url = item.getEpg().replace("{date}", date);
+        execute(EPG, () -> {
+            item.setData(epg);
+            if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getName(), formatTime));
+            return item.getData().selected();
+        });
+
     }
 
     public void getUrl(Channel item) {

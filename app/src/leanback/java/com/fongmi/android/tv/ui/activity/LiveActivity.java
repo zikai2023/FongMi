@@ -44,6 +44,7 @@ import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
+import com.fongmi.android.tv.player.EpgUtil;
 import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.server.Server;
@@ -71,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
@@ -95,6 +97,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private Clock mClock;
     private int toggleCount;
     private int count;
+    private Map<String, Epg> epgMap;
 
     public static void start(Context context) {
         if (!LiveConfig.isEmpty()) context.startActivity(new Intent(context, LiveActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("empty", false));
@@ -240,9 +243,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mViewModel.epg.observe(this, this::setEpg);
         mViewModel.live.observe(this, live -> {
             hideProgress();
+            setLiveEpg(live);
             setGroup(live);
             setWidth(live);
         });
+
     }
 
     private void checkLive() {
@@ -274,6 +279,12 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         setPlayerView();
         setDecodeView();
         showProgress();
+    }
+
+    private void setLiveEpg(Live live) {
+        EpgUtil epgUtil = new EpgUtil();
+        epgUtil.download(live);
+        epgMap = epgUtil.parseEpgFromXmlSource(live);
     }
 
     private void setGroup(Live live) {
@@ -613,6 +624,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     @Override
     public void onItemClick(EpgData item) {
         if (item.isFuture() || !mChannel.hasCatchup()) return;
+        if(item.isSelected())
+        {
+            Notify.show(getString(R.string.play_now, item.getTitle()));
+            return;
+        }
         Notify.show(getString(R.string.play_ready, item.getTitle()));
         mViewModel.getUrl(mChannel, item);
         setActivated(item);
@@ -646,7 +662,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void setInfo() {
-        mViewModel.getEpg(mChannel);
+        mViewModel.getEpg(mChannel,epgMap.get(mChannel.getTvgName()));
         mBinding.widget.play.setText("");
         mChannel.loadLogo(mBinding.widget.logo);
         mBinding.widget.name.setText(mChannel.getName());
@@ -669,7 +685,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getName().equals(epg.getKey())) setEpg();
+        if (mChannel != null && mChannel.getName().equals(epg.getKey())) {setEpg();return;}
+        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) setEpg();
     }
 
     private void fetch() {

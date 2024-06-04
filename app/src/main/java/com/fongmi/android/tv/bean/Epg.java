@@ -95,4 +95,8 @@ public class Epg {
         for (int i = 0; i < getList().size(); i++) if (getList().get(i).isInRange()) return i;
         return -1;
     }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 }

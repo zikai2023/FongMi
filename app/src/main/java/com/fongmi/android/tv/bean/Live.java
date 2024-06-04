@@ -320,4 +320,8 @@ public class Live {
         Live it = (Live) obj;
         return getName().equals(it.getName());
     }
+
+    public void setCatchup(Catchup catchup) {
+        this.catchup = catchup;
+    }
 }

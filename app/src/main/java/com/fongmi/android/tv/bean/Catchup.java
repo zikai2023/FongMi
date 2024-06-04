@@ -18,6 +18,8 @@ public class Catchup {
     private String regex;
     @SerializedName("source")
     private String source;
+    @SerializedName("tvgUrl")
+    private String tvgUrl;
 
     public static Catchup PLTV() {
         Catchup item = new Catchup();
@@ -98,5 +100,13 @@ public class Catchup {
         Matcher matcher = Pattern.compile("(\\$\\{[^}]*\\})").matcher(result);
         while (matcher.find()) result = result.replace(matcher.group(1), data.format(matcher.group(1)));
         return isDefault() ? result : format(url, result);
+    }
+
+    public String getTvgUrl() {
+        return tvgUrl;
+    }
+
+    public void setTvgUrl(String tvgUrl) {
+        this.tvgUrl = tvgUrl;
     }
 }
