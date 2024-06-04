@@ -12,7 +12,7 @@ import java.util.Map;
 public class EpgUtilTest {
 
     private EpgUtil epgUtil;
-    private static final String TEST_EPG_URL = "https://epg.erw.cc/cc.xml";
+    private static final String TEST_EPG_URL = "https://live.fanmingming.com/e.xml";
 
     @BeforeMethod
     public void setUp() {
@@ -31,7 +31,9 @@ public class EpgUtilTest {
         Epg epg1 = epgUtil.getEpgByChannelName("CCTV1");
         Assert.assertNotNull(epg1, "Epg for channel 'CCTV1' should not be null");
 
-        Epg epg2 = epgUtil.getEpgByChannelId("85");
+//        https://live.fanmingming.com/e.xml 使用的channelId 与 channelName 相同
+//        https://epg.erw.cc/all.xml 使用的channelId 与 channelName 不同
+        Epg epg2 = epgUtil.getEpgByChannelId("深圳电视剧");
         Assert.assertNotNull(epg2, "Epg for channel '85' should not be null");
 
         Epg epg3 = epgUtil.getEpgByChannelId("10086");

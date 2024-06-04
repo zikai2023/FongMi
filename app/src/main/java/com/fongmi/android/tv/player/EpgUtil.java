@@ -6,10 +6,15 @@ import android.net.Uri;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.xml.Tv;
+import com.fongmi.android.tv.bean.xml.Channel;
+import com.fongmi.android.tv.bean.xml.Programme;
 import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
+
+import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
 import java.text.ParseException;
@@ -18,20 +23,15 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-
 
 public class EpgUtil implements Download.Callback {
     private static Map<String, String> channelDisplayNames = new HashMap<>();
     private static Map<String, Epg> epgMap = new HashMap<>();
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+    private SimpleDateFormat showTimeFormat = new SimpleDateFormat("H:mm");
 
     // ... 其他代码 ...
-
 
     public Map<String, Epg> parseEpgFromXmlSource(String xmlUri)  {
         String xmlStream;
@@ -42,7 +42,7 @@ public class EpgUtil implements Download.Callback {
             xmlStream = fetchXmlFromLocalResource(xmlUri);
         }
 
-        return extractedEpgXmlStream(xmlStream);
+        return fromXml(xmlStream);
     }
 
     public Map<String, Epg> parseEpgFromXmlSource(Live live)  {
@@ -53,53 +53,43 @@ public class EpgUtil implements Download.Callback {
 
         String xmlStream = Path.read(file);
 
-        return extractedEpgXmlStream(xmlStream);
+        return fromXml(xmlStream);
     }
 
-    private Map<String, Epg> extractedEpgXmlStream(String xmlStream) {
-        Document document = null;
+    private Map<String, Epg> fromXml(String xmlStream) {
+        Persister persister = new Persister();
+        Tv tv;
         try {
+            tv = persister.read(Tv.class, xmlStream);
 
-            document = DocumentHelper.parseText(xmlStream);
+            for (Channel channel : tv.getChannels()) {
+                String channelId = channel.getId();
+                String displayName = channel.getDisplayName();
 
-
-            Element rootElement = document.getRootElement();
-            List<Element> channelElements = rootElement.elements("channel");
-            for (Element channel : channelElements) {
-                String channelId = channel.attributeValue("id");
-                String displayName = channel.elementText("display-name");
                 if (displayName != null) {
                     channelDisplayNames.put(channelId, displayName);
                 }
             }
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-            List<Element> programmeElements = rootElement.elements("programme");
-            for (Element programme : programmeElements) {
-                String start = programme.attributeValue("start");
-                String stop = programme.attributeValue("stop");
-                String channel = programme.attributeValue("channel");
+            for (Programme programme : tv.getProgrammes()) {
+                String channel = programme.getChannel();
+                String start = programme.getStart();
+                String stop = programme.getStop();
 
-                // 获取<title>元素
-                Element titleElement = programme.element("title");
-                String titleLang = null;
-                String titleText = null;
-                if (titleElement != null) {
-                    titleLang = titleElement.attributeValue("lang");
-                    titleText = titleElement.getTextTrim();
-                }
+                // 获取<title>元素的文本和语言
+                String titleText = programme.getTitle();
+                Date startDate = parseDateTime(start);
+                Date endDate = parseDateTime(stop);
 
-                // 创建EpgData对象
                 EpgData epgData = new EpgData();
                 epgData.setTitle(titleText);
 
-                SimpleDateFormat timeFormat = new SimpleDateFormat("H:mm");
-                String starttimeStr = timeFormat.format(parseDateTime(start));
-                String endtimeStr = timeFormat.format(parseDateTime(stop));
-                epgData.setStart(starttimeStr);
-                epgData.setEnd(endtimeStr);
-                epgData.setStartTime(parseDateTime(start).getTime());
-                epgData.setEndTime(parseDateTime(stop).getTime());
+                epgData.setStart(showTimeFormat.format(startDate));
+                epgData.setEnd(showTimeFormat.format(endDate));
+                epgData.setStartTime(startDate.getTime());
+                epgData.setEndTime(endDate.getTime());
 
 
                 // 获取或创建Epg对象
@@ -111,32 +101,27 @@ public class EpgUtil implements Download.Callback {
                     epg.setList(new ArrayList<>());
                     epgMap.put(channelName, epg);
                 }
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                 epg.setDate(dateFormat.format(parseDateTime(start)));
                 epg.getList().add(epgData);
 
             }
 
-        } catch (DocumentException e) {
+            return epgMap;
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return epgMap;
+        return Collections.emptyMap();
     }
+
 
     private boolean isRemoteUrl(String xmlSource) {
         return xmlSource.startsWith("http://") || xmlSource.startsWith("https://");
     }
 
-
-
     private String fetchXmlFromLocalResource(String resourcePath)  {
-
-
         // 使用 Path.read 方法来读取文件内容
         String content = Path.read(resourcePath);
-
         return content;
     }
 

@@ -106,14 +106,7 @@ dependencies {
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')
-
-    testImplementation 'org.testng:testng:7.4.0'
-
-    implementation('org.dom4j:dom4j:2.1.4')  { exclude group: 'stax', module: 'stax-api' exclude group: 'javax.xml.stream', module: 'stax-api' exclude group: 'xpp3', module: 'xpp3' }
-
-
     pythonImplementation project(':pyramid')
-
     implementation project(':media-lib-datasource-okhttp')
     implementation project(':media-lib-datasource-rtmp')
     implementation project(':media-lib-decoder-av1')
@@ -164,4 +157,5 @@ dependencies {
     mobileImplementation('com.journeyapps:zxing-android-embedded:4.3.0') { transitive = false }
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    testImplementation 'org.testng:testng:7.7.0'
 }
