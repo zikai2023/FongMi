@@ -35,9 +35,10 @@ public class EpgUtil implements Download.Callback {
     // ... 其他代码 ...
 
     public Map<String, Epg> parseEpgFromXmlSource(String xmlUri)  {
+        if (xmlUri.isEmpty()) return epgMap;
+
         String xmlStream;
         if (isRemoteUrl(xmlUri)) {
-            Live live = new Live();
             xmlStream = OkHttp.string(xmlUri);
         } else {
             xmlStream = fetchXmlFromLocalResource(xmlUri);
@@ -47,6 +48,8 @@ public class EpgUtil implements Download.Callback {
     }
 
     public Map<String, Epg> parseEpgFromXmlSource(Live live)  {
+        if(!checkLiveConfig(live)) return epgMap;
+
         String epg_xml_url = live.getCatchup().getTvgUrl();
 
         File file = new File(Path.cache(), Uri.parse(epg_xml_url).getLastPathSegment());
@@ -59,11 +62,20 @@ public class EpgUtil implements Download.Callback {
                 String channelName = c.getTvgName();
                 existChannelNames.add(channelName);
             }
-
         }
 
         return fromXml(xmlStream,existChannelNames);
     }
+
+    private boolean checkLiveConfig(Live live) {
+        String epg_xml_url = live.getCatchup().getTvgUrl();
+        if(epg_xml_url == null || epg_xml_url.isEmpty())
+        {
+            return false;
+        }
+        return true;
+    }
+
     private Map<String, Epg> fromXml(String xmlStream) {
         return fromXml(xmlStream, null);
     }
@@ -164,7 +176,10 @@ public class EpgUtil implements Download.Callback {
     }
 
     public  void download(Live live) {
+        if(!checkLiveConfig(live))  return ;
         String epg_xml_url = live.getCatchup().getTvgUrl();
+
+
         File file = new File(Path.cache(), Uri.parse(epg_xml_url).getLastPathSegment());
         long lastModified = file.lastModified();
         long todayInMillis = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);

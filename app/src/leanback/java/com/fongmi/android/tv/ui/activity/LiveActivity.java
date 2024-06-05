@@ -601,7 +601,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onItemClick(Channel item) {
-        if(item.isSelected())
+        if(item.isSelected() && mPlayers.isPlaying())
         {
             showEpg(item);
             return;
