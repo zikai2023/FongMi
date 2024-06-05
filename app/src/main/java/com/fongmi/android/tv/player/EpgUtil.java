@@ -5,6 +5,7 @@ import android.net.Uri;
 
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
+import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.xml.Tv;
 import com.fongmi.android.tv.bean.xml.Channel;
@@ -47,16 +48,27 @@ public class EpgUtil implements Download.Callback {
 
     public Map<String, Epg> parseEpgFromXmlSource(Live live)  {
         String epg_xml_url = live.getCatchup().getTvgUrl();
-        String epg_local_name = live.getName();
 
         File file = new File(Path.cache(), Uri.parse(epg_xml_url).getLastPathSegment());
-
         String xmlStream = Path.read(file);
 
-        return fromXml(xmlStream);
+        Set<String> existChannelNames = new HashSet<>();
+        for (Group g : live.getGroups()){
+            List<com.fongmi.android.tv.bean.Channel> channels = g.getChannel();
+            for (com.fongmi.android.tv.bean.Channel c : channels){
+                String channelName = c.getTvgName();
+                existChannelNames.add(channelName);
+            }
+
+        }
+
+        return fromXml(xmlStream,existChannelNames);
+    }
+    private Map<String, Epg> fromXml(String xmlStream) {
+        return fromXml(xmlStream, null);
     }
 
-    private Map<String, Epg> fromXml(String xmlStream) {
+    private Map<String, Epg> fromXml(String xmlStream, Set<String> existChannelNames) {
         Persister persister = new Persister();
         Tv tv;
         try {
@@ -75,6 +87,11 @@ public class EpgUtil implements Download.Callback {
 
             for (Programme programme : tv.getProgrammes()) {
                 String channel = programme.getChannel();
+                String channelName = channelDisplayNames.get(channel);
+                if(existChannelNames != null && !existChannelNames.contains(channelName) )
+                {
+                    continue;
+                }
                 String start = programme.getStart();
                 String stop = programme.getStop();
 
@@ -92,8 +109,6 @@ public class EpgUtil implements Download.Callback {
                 epgData.setEndTime(endDate.getTime());
 
 
-                // 获取或创建Epg对象
-                String channelName = channelDisplayNames.get(channel);
                 Epg epg = epgMap.get(channelName);
                 if (epg == null) {
                     epg = new Epg();
