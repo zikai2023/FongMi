@@ -1,6 +1,10 @@
-name: fongmiboxtv Build
+name: fongmi唐三 Build
 
 on:
+  push:
+    # 根据branch或者tags来触发
+    branches:
+      - fongmi
   workflow_dispatch:
 
 jobs:
