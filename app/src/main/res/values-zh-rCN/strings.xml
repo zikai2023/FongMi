@@ -30,6 +30,7 @@
     <string name="play">播放</string>
     <string name="play_op">片头</string>
     <string name="play_ed">片尾</string>
+    <string name="play_exo">EXO</string>
     <string name="play_next">下集</string>
     <string name="play_prev">上集</string>
     <string name="play_loop">循环</string>
@@ -83,8 +84,9 @@
     <string name="player_caption">字幕样式</string>
     <string name="player_subtitle">字幕大小</string>
     <string name="player_background">后台播放</string>
-    <string name="player_exo_tunnel">隧道模式</string>
-    <string name="player_exo_buffer">缓冲时间</string>
+    <string name="player_tunnel">隧道模式</string>
+    <string name="player_buffer">缓冲时间</string>
+    <string name="player_rtsp">RTSP 通道</string>
     <string name="player_ua">User-Agent</string>
 
     <!-- Search -->
@@ -145,12 +147,6 @@
         <item>硬解</item>
     </string-array>
 
-    <string-array name="select_player">
-        <item>系统</item>
-        <item>IJK</item>
-        <item>EXO</item>
-    </string-array>
-
     <string-array name="select_quality">
         <item>低</item>
         <item>中</item>
@@ -186,6 +182,11 @@
         <item>选择音轨</item>
         <item>选择视轨</item>
         <item>选择字幕</item>
+    </string-array>
+
+    <string-array name="select_rtsp">
+        <item>UDP</item>
+        <item>TCP</item>
     </string-array>
 
 </resources>
