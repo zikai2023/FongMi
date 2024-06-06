@@ -182,8 +182,8 @@ public class EpgUtil implements Download.Callback {
 
         File file = new File(Path.cache(), Uri.parse(epg_xml_url).getLastPathSegment());
         long lastModified = file.lastModified();
-        long todayInMillis = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
-        if (lastModified < todayInMillis) {
+        long todayZeroTimeInMillis = System.currentTimeMillis() - (System.currentTimeMillis() % (24 * 60 * 60 * 1000));
+        if (lastModified < todayZeroTimeInMillis) {
             Download.create(epg_xml_url, file, this).start();
         }
 
