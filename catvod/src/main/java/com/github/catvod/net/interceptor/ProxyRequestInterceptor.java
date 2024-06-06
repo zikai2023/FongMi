@@ -28,13 +28,8 @@ public class ProxyRequestInterceptor implements Interceptor {
             if (selector.getHosts().contains(request.url().host())) {
                 throw e;
             }
-            try {
-                selector.getHosts().add(request.url().host());
-                return chain.proceed(request);
-            } catch (Exception e2) {
-                selector.getHosts().remove(request.url().host());
-                throw e;
-            }
         }
+        selector.getHosts().add(request.url().host());
+        return chain.proceed(request);
     }
 }
