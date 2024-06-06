@@ -21,6 +21,7 @@ import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
 import com.fongmi.android.tv.ui.cast.ScanEvent;
 import com.fongmi.android.tv.ui.cast.ScanTask;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -60,6 +61,9 @@ public class SyncDialog implements DeviceAdapter.OnClickListener, ScanTask.Liste
 
     private void initDialog() {
         WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = (int) (ResUtil.getScreenWidth() * 0.4f);
+        dialog.getWindow().setAttributes(params);
+        dialog.getWindow().setDimAmount(0);
         dialog.show();
     }
 
