@@ -5,7 +5,7 @@ import androidx.media3.common.audio.BaseAudioProcessor;
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private short targetVolume = 100;
+    private double targetVolume = 3000;
 
     AudioFormat audioFormat;
 
@@ -22,7 +22,7 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         double currentVolume = calculateVolume(inputBuffer);
         double gain = 1;
         if (currentVolume != 0) {
-            gain = (double) targetVolume / currentVolume;
+            gain = targetVolume / currentVolume;
         }
 
         applyGain(inputBuffer, gain);
@@ -40,16 +40,25 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
 
         int numSamples = (limit - position) / (bytesPerSample);
+        if (numSamples == 0) {
+            return 1;
+        }
 
-
-        double avg = 0.0;
+        double sum = 0;
         for (int i = 0; i < numSamples; i++) {
-            short sample = inputBuffer.getShort();
-            avg += ((double) Math.abs(sample) / numSamples);
+            double sample = 0;
+            if (bytesPerSample == 2) {
+                sample = inputBuffer.getShort();
+            } else if (bytesPerSample == 4) {
+                sample = inputBuffer.getInt();
+            } else if (bytesPerSample == 8) {
+                sample = inputBuffer.getLong();
+            }
+            sum += sample * sample;
         }
         inputBuffer.position(position);
         inputBuffer.limit(limit);
-        return avg;
+        return Math.sqrt(sum / numSamples);
     }
 
     //
@@ -65,9 +74,13 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
         ByteBuffer outputBuffer = replaceOutputBuffer(limit - position);
         for (int i = 0; i < numSamples; i++) {
-            short oriSample = inputBuffer.getShort();
-            short newSample = (short) ((double) oriSample * gain);
-            outputBuffer.putShort(newSample);
+            if (bytesPerSample == 2) {
+                outputBuffer.putShort((short) ((double) inputBuffer.getShort() * gain));
+            } else if (bytesPerSample == 4) {
+                outputBuffer.putInt((int) ((double) inputBuffer.getInt() * gain));
+            } else if (bytesPerSample == 8) {
+                outputBuffer.putLong((long) ((double) inputBuffer.getLong() * gain));
+            }
         }
         inputBuffer.position(limit);
         outputBuffer.flip();
