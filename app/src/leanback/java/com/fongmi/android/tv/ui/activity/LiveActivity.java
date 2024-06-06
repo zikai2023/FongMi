@@ -629,6 +629,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
             Notify.show(getString(R.string.play_now, item.getTitle()));
             return;
         }
+        mChannel.setSelectEpg(item);
         Notify.show(getString(R.string.play_ready, item.getTitle()));
         mViewModel.getUrl(mChannel, item);
         setActivated(item);

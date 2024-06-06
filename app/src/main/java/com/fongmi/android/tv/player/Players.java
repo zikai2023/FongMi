@@ -42,8 +42,10 @@ import com.github.catvod.utils.Path;
 import com.google.common.net.HttpHeaders;
 import com.orhanobut.logger.Logger;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +80,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     private ParseJob parseJob;
     private Runnable runnable;
     private String url;
+    private Long epgStartTime = 0L;
+
     private Sub sub;
+    private SimpleDateFormat showTimeFormat = new SimpleDateFormat("H:mm:ss");
 
     private long position;
     private int player;
@@ -110,6 +115,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
+
         createSession(activity);
         return this;
     }
@@ -221,7 +227,16 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     public String stringToTime(long time) {
+        if(epgStartTime != 0L)
+        {
+            return getTimeInHHMMSS(epgStartTime + time);
+        }
         return Util.format(builder, formatter, time);
+    }
+
+    public String getTimeInHHMMSS(long timeMs) {
+        Date date = new Date(timeMs);
+        return showTimeFormat.format(date);
     }
 
     public float getSpeed() {
@@ -506,6 +521,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(channel));
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(channel, error));
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
+        if(channel.getSelectEpg()!=null && !channel.getSelectEpg().getStart().isEmpty())
+        {
+            epgStartTime = channel.getSelectEpg().getStartTime();
+        }
+
         setTimeoutCheck(channel.getHeaders(), channel.getUrl(), timeout);
     }
 

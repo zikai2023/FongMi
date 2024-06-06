@@ -59,6 +59,7 @@ public class Channel {
     private String url;
     private String msg;
     private Epg data;
+    private EpgData selectEpg;
     private int line;
 
     public static Channel objectFrom(JsonElement element) {
@@ -386,5 +387,13 @@ public class Channel {
         if (!(obj instanceof Channel)) return false;
         Channel it = (Channel) obj;
         return getName().equals(it.getName()) || (!getNumber().isEmpty() && getNumber().equals(it.getNumber()));
+    }
+
+    public EpgData getSelectEpg() {
+        return selectEpg;
+    }
+
+    public void setSelectEpg(EpgData selectEpg) {
+        this.selectEpg = selectEpg;
     }
 }
