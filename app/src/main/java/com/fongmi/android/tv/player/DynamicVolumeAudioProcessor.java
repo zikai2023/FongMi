@@ -5,7 +5,7 @@ import androidx.media3.common.audio.BaseAudioProcessor;
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private double targetVolume = 3000;
+    private double maxVolume = 8000;
 
     AudioFormat audioFormat;
 
@@ -20,12 +20,12 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     public void queueInput(ByteBuffer inputBuffer) {
 
         double currentVolume = calculateVolume(inputBuffer);
-        double gain = 1;
-        if (currentVolume != 0) {
-            gain = targetVolume / currentVolume;
+        if (currentVolume > maxVolume) {
+            double gain = maxVolume / currentVolume;
+            applyGain(inputBuffer, gain);
+        } else {
+            applyGain(inputBuffer, 1);
         }
-
-        applyGain(inputBuffer, gain);
 
     }
 
