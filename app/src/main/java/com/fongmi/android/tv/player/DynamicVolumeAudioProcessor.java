@@ -1,16 +1,13 @@
 package com.fongmi.android.tv.player;
 
-import android.util.Log;
-
 import androidx.media3.common.audio.BaseAudioProcessor;
 
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private final double maxVolume = 3000;
-    private final double minVolume = 1000;
-    private final double threshold = 400;
-    private final double maxGain = 1.5;
+    private static final double maxVolume = 4000;
+    private static final double minVolume = 1000;
+    private static final double threshold = 250;
 
     AudioFormat audioFormat;
 
@@ -26,19 +23,19 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
-        double currentVolume = calculateVolume(inputBuffer);
-        if (currentVolume > maxVolume) {
-            gain = Math.min(gain, maxVolume / currentVolume);
+        Double currentVolume = calculateVolume(inputBuffer);
+        if (currentVolume != null && currentVolume != 0) {
+            if (currentVolume > maxVolume) {
+                gain = Math.min(gain, maxVolume / currentVolume);
+            }
+            if (currentVolume < minVolume) {
+                gain = Math.max(gain, minVolume / currentVolume);
+            }
         }
-        if (currentVolume > threshold && currentVolume < minVolume) {
-            gain = Math.min(maxGain, Math.max(gain, minVolume / currentVolume));
-        }
-        Log.i("gain", String.valueOf(gain));
-        Log.i("currentVolume", String.valueOf(currentVolume));
         applyGain(inputBuffer, gain);
     }
 
-    private double calculateVolume(ByteBuffer inputBuffer) {
+    private Double calculateVolume(ByteBuffer inputBuffer) {
         final int position = inputBuffer.position();
         final int limit = inputBuffer.limit();
 
@@ -50,7 +47,7 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
         int numSamples = (limit - position) / (bytesPerSample);
         if (numSamples == 0) {
-            return 1;
+            return null;
         }
 
         int addCnt = 0;
@@ -73,6 +70,9 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         }
         inputBuffer.position(position);
         inputBuffer.limit(limit);
+        if (addCnt == 0 || (double) addCnt / numSamples < 0.5) {
+            return null;
+        }
         return Math.sqrt(sum / addCnt);
     }
 
