@@ -8,8 +8,8 @@ import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private final double maxVolume = 3500;
-    private final double minVolume = 1000;
-    private final double threshold = 600;
+    private final double minVolume = 1100;
+    private final double threshold = 700;
     private final double maxGain = 1.5;
 
     AudioFormat audioFormat;
@@ -23,7 +23,7 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         return audioFormat;
     }
 
-    //
+
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
         double currentVolume = calculateVolume(inputBuffer);
