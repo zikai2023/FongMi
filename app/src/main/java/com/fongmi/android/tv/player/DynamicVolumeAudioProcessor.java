@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private static final double targetVolume = 2000;
     private static final double minGain = 0.5;
-    private static final double maxGain = 2;
+    private static final double maxGain = 1.5;
 
     AudioFormat audioFormat;
     double gain;
@@ -93,6 +93,11 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         }
         inputBuffer.position(limit);
         outputBuffer.flip();
+    }
+
+    protected void onReset() {
+        gain = 1;
+        audioFormat = AudioFormat.NOT_SET;
     }
 
 }
