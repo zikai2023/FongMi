@@ -28,12 +28,12 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         if (currentVolume != null && currentVolume != 0) {
             if (currentVolume > targetVolume) {
                 // 变小
-                gain = Math.max(gain * 0.99, targetVolume / currentVolume);
+                gain = Math.max(gain * 0.95, targetVolume / currentVolume);
                 gain = Math.max(gain, minGain);
             }
             if (currentVolume > threshold && currentVolume < targetVolume) {
                 // 变大
-                gain = Math.min(gain * 1.01, targetVolume / currentVolume);
+                gain = Math.min(gain * 1.05, targetVolume / currentVolume);
                 gain = Math.min(gain, maxGain);
             }
         }
