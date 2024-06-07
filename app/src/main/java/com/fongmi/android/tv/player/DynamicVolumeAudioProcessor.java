@@ -1,15 +1,16 @@
 package com.fongmi.android.tv.player;
 
+import android.util.Log;
+
 import androidx.media3.common.audio.BaseAudioProcessor;
 
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private final double maxVolume = 7000;
-    private final double minVolume = 2000;
-    private final double threshold = 1000;
-    private final double minGain = 0.2;
-    private final double maxGain = 3;
+    private final double maxVolume = 3500;
+    private final double minVolume = 1000;
+    private final double threshold = 600;
+    private final double maxGain = 1.5;
 
     AudioFormat audioFormat;
 
@@ -27,11 +28,13 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     public void queueInput(ByteBuffer inputBuffer) {
         double currentVolume = calculateVolume(inputBuffer);
         if (currentVolume > maxVolume) {
-            gain = Math.max(minGain, Math.min(gain, maxVolume / currentVolume));
+            gain = Math.min(gain, maxVolume / currentVolume);
         }
         if (currentVolume > threshold && currentVolume < minVolume) {
             gain = Math.min(maxGain, Math.max(gain, minVolume / currentVolume));
         }
+        Log.i("gain", String.valueOf(gain));
+        Log.i("currentVolume", String.valueOf(currentVolume));
         applyGain(inputBuffer, gain);
     }
 
