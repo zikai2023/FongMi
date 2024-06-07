@@ -7,9 +7,9 @@ import androidx.media3.common.audio.BaseAudioProcessor;
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private final double maxVolume = 3500;
-    private final double minVolume = 1100;
-    private final double threshold = 700;
+    private final double maxVolume = 3000;
+    private final double minVolume = 1000;
+    private final double threshold = 400;
     private final double maxGain = 1.5;
 
     AudioFormat audioFormat;
@@ -53,6 +53,8 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
             return 1;
         }
 
+        int addCnt = 0;
+
         double sum = 0;
         for (int i = 0; i < numSamples; i++) {
             double sample = 0;
@@ -63,14 +65,18 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
             } else if (bytesPerSample == 8) {
                 sample = inputBuffer.getLong();
             }
+            if (sample < threshold) {
+                continue;
+            }
             sum += sample * sample;
+            addCnt++;
         }
         inputBuffer.position(position);
         inputBuffer.limit(limit);
-        return Math.sqrt(sum / numSamples);
+        return Math.sqrt(sum / addCnt);
     }
 
-    //
+
     private void applyGain(ByteBuffer inputBuffer, double gain) {
         final int position = inputBuffer.position();
         final int limit = inputBuffer.limit();
