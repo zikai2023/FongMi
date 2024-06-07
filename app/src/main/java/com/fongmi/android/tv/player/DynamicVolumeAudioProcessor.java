@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.player;
 
+import android.util.Log;
+
 import androidx.media3.common.audio.BaseAudioProcessor;
 
 import java.nio.ByteBuffer;
@@ -35,7 +37,7 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
                 gain = Math.min(gain, maxGain);
             }
         }
-//        Log.i("gain", String.valueOf(gain));
+        Log.i("gain", String.valueOf(gain));
         applyGain(inputBuffer, gain);
     }
 
