@@ -10,8 +10,10 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private static final double threshold = 1000;
 
     AudioFormat audioFormat;
+    double gain;
 
     protected AudioFormat onConfigure(AudioFormat inputAudioFormat) {
+        gain = 1;
         audioFormat = inputAudioFormat;
         return audioFormat;
     }
@@ -19,7 +21,6 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
-        double gain = 1;
         Double currentVolume = calculateVolume(inputBuffer);
         if (currentVolume != null && currentVolume != 0) {
             if (currentVolume > maxVolume) {
