@@ -8,9 +8,6 @@ import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private static final double targetVolume = 2000;
-    private static final double threshold = 400;
-    private static final double maxGain = 2;
-    private static final double minGain = 0.25;
 
     AudioFormat audioFormat;
     double gain;
@@ -26,15 +23,12 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     public void queueInput(ByteBuffer inputBuffer) {
         Double currentVolume = calculateVolume(inputBuffer);
         if (currentVolume != null && currentVolume != 0) {
-            if (currentVolume > targetVolume) {
-                // 变小
-                gain = Math.max(gain * 0.95, targetVolume / currentVolume);
-                gain = Math.max(gain, minGain);
+            double currentVolumeAfterGain = currentVolume * gain;
+            if (currentVolumeAfterGain > targetVolume) {
+                gain = Math.max(gain * 0.99, targetVolume / currentVolume);
             }
-            if (currentVolume > threshold && currentVolume < targetVolume) {
-                // 变大
-                gain = Math.min(gain * 1.05, targetVolume / currentVolume);
-                gain = Math.min(gain, maxGain);
+            if (currentVolumeAfterGain < targetVolume) {
+                gain = Math.min(gain * 1.01, targetVolume / currentVolume);
             }
         }
         Log.i("gain", String.valueOf(gain));
