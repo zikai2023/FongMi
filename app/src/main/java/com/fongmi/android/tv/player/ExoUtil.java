@@ -44,6 +44,7 @@ import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
+import com.fongmi.android.tv.player.custom.NextRenderersFactory;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
@@ -77,7 +78,7 @@ public class ExoUtil {
     }
 
     public static RenderersFactory buildRenderersFactory() {
-        return new DefaultRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isSoft(Players.EXO) ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isSoft(Players.EXO) ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
     }
 
     public static CaptionStyleCompat getCaptionStyle() {
@@ -157,6 +158,7 @@ public class ExoUtil {
         if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
         if (mimeType != null) builder.setMimeType(mimeType);
+        builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
         return builder.build();
     }
 

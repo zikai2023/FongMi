@@ -117,7 +117,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private PlayerView getExo() {
-        return Setting.getRender() == 0 ? mBinding.surface : mBinding.texture;
+        return mBinding.exo;
     }
 
     private IjkVideoView getIjk() {
@@ -159,7 +159,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     @Override
     protected void initView(Bundle savedInstanceState) {
         mKeyDown = CustomKeyDownLive.create(this, mBinding.video);
-        mClock = Clock.create(Arrays.asList(mBinding.widget.time, mBinding.display.time));
+        mClock = Clock.create(Arrays.asList(mBinding.widget.clock, mBinding.display.clock));
         setPadding(mBinding.control.getRoot());
         setPadding(mBinding.widget.epg, true);
         setPadding(mBinding.recycler, true);
@@ -225,7 +225,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
-        mBinding.control.action.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
     }
 
@@ -551,7 +550,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private void showDisplayInfo() {
         boolean controlVisible = isVisible(mBinding.control.getRoot()) || isVisible(mBinding.widget.info);
         boolean visible = (!controlVisible && !isLock());
-        mBinding.display.time.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
+        mBinding.display.clock.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(View.GONE);
     }
@@ -820,24 +819,20 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
                 resetToggle();
                 hideProgress();
                 mPlayers.reset();
-                setSpeedVisible();
                 setTrackVisible(true);
                 checkPlayImg(mPlayers.isPlaying());
                 mBinding.control.size.setText(mPlayers.getSizeText());
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
-                nextEpg();
+                checkNext();
                 break;
         }
     }
 
-    private void setSpeedVisible() {
-        mBinding.control.action.speed.setVisibility(mPlayers.isVod() ? View.VISIBLE : View.GONE);
-    }
-
     private void setTrackVisible(boolean visible) {
         mBinding.control.action.text.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
+        mBinding.control.action.speed.setVisibility(visible && mPlayers.isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.action.audio.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
     }
@@ -934,31 +929,27 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         if (!mGroup.isEmpty()) onItemClick(mGroup.current());
     }
 
-    public void nextEpg() {
+    private void checkNext() {
+        int current = mChannel.getData().getInRange();
         int position = mChannel.getData().getSelected() + 1;
-        boolean limit = position > mEpgDataAdapter.getItemCount() - 1;
-        if (!limit) onItemClick(mChannel.getData().getList().get(position));
+        boolean hasNext = position <= current && position > 0;
+        if (hasNext) onItemClick(mChannel.getData().getList().get(position));
         else nextChannel();
     }
 
     private void prevLine() {
-        if (mChannel == null) return;
+        if (mChannel == null || mChannel.isOnly()) return;
         mChannel.prevLine();
         showInfo();
         fetch();
     }
 
     private void nextLine(boolean show) {
-        if (mChannel == null) return;
+        if (mChannel == null || mChannel.isOnly()) return;
         mChannel.nextLine();
         if (show) showInfo();
         else setInfo();
         fetch();
-    }
-
-    private void seekTo() {
-        mPlayers.seekTo(Constant.INTERVAL_SEEK * 3);
-        showProgress();
     }
 
     private void onPaused() {
@@ -1037,6 +1028,21 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     @Override
+    public void onSpeedUp() {
+        if (!mPlayers.isVod() || !mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        mBinding.widget.speed.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onSpeedEnd() {
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(1.0f));
+        mBinding.widget.speed.setVisibility(View.GONE);
+        mBinding.widget.speed.clearAnimation();
+    }
+
+    @Override
     public void onBright(int progress) {
         mBinding.widget.bright.setVisibility(View.VISIBLE);
         mBinding.widget.brightProgress.setProgress(progress);
@@ -1066,26 +1072,40 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     @Override
     public void onFlingUp() {
-        prevChannel();
+        if (!mPlayers.isVod()) prevChannel();
     }
 
     @Override
     public void onFlingDown() {
-        nextChannel();
+        if (!mPlayers.isVod()) nextChannel();
     }
 
     @Override
     public void onFlingLeft() {
-        if (mChannel == null) return;
-        if (mChannel.isOnly() && mPlayers.isVod()) App.post(this::seekTo, 250);
-        else if (!mChannel.isOnly()) prevLine();
+        if (!mPlayers.isVod()) prevLine();
     }
 
     @Override
     public void onFlingRight() {
-        if (mChannel == null) return;
-        if (mChannel.isOnly() && mPlayers.isVod()) App.post(this::seekTo, 250);
-        else if (!mChannel.isOnly()) nextLine(true);
+        if (!mPlayers.isVod()) nextLine(true);
+    }
+
+    @Override
+    public void onSeek(int time) {
+        if (!mPlayers.isVod()) return;
+        mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        mBinding.widget.time.setText(mPlayers.getPositionTime(time));
+        mBinding.widget.seek.setVisibility(View.VISIBLE);
+        hideProgress();
+    }
+
+    @Override
+    public void onSeekEnd(int time) {
+        if (!mPlayers.isVod()) return;
+        mBinding.widget.seek.setVisibility(View.GONE);
+        mPlayers.seekTo(time);
+        showProgress();
+        onPlay();
     }
 
     @Override
@@ -1119,7 +1139,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         super.onUserLeaveHint();
         if (isRedirect()) return;
         if (isLock()) App.post(this::onLock, 500);
-        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, Setting.getLiveScale() == 2);
+        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.getVideoSize(), Setting.getLiveScale());
     }
 
     @Override
