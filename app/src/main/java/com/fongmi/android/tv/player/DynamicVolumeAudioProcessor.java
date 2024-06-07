@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private static final double maxVolume = 4000;
     private static final double minVolume = 2000;
-    private static final double threshold = 1000;
+    private static final double threshold = 500;
 
     AudioFormat audioFormat;
     double gain;
@@ -68,7 +68,7 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         }
         inputBuffer.position(position);
         inputBuffer.limit(limit);
-        if (addCnt == 0 || (double) addCnt / numSamples < 0.5) {
+        if (addCnt == 0 || (double) addCnt / numSamples < 0.25) {
             return null;
         }
         return Math.sqrt(sum / addCnt);
