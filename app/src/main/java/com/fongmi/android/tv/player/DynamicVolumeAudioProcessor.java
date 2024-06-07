@@ -5,7 +5,7 @@ import androidx.media3.common.audio.BaseAudioProcessor;
 import java.nio.ByteBuffer;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private static final double targetVolume = 3000;
+    private static final double targetVolume = 2000;
     private static final double threshold = 400;
     private static final double maxGain = 2;
     private static final double minGain = 0.25;
