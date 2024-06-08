@@ -2,12 +2,13 @@ package com.fongmi.android.tv.player;
 
 import androidx.media3.common.audio.BaseAudioProcessor;
 
+import com.fongmi.android.tv.player.pojo.RmsMaxGain;
+
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
     private static final double targetVolume = 2000;
-    private static final double minGain = 0.1;
-    private static final double maxGain = 5;
 
     AudioFormat audioFormat;
     double gain;
@@ -21,22 +22,23 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
 
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
-        Double currentVolume = calculateVolume(inputBuffer);
+        RmsMaxGain rmsMaxGain = calculateVolume(inputBuffer);
+        Double currentVolume = Optional.ofNullable(rmsMaxGain).map(RmsMaxGain::getRms).orElse(null);
+        Double maxGain = Optional.ofNullable(rmsMaxGain).map(RmsMaxGain::getMaxGain).orElse(9999.0);
         if (currentVolume != null && currentVolume != 0) {
             double currentVolumeAfterGain = currentVolume * gain;
             if (currentVolumeAfterGain > targetVolume) {
                 gain = Math.max(gain * 0.99, targetVolume / currentVolume);
-                gain = Math.max(gain, minGain);
             }
             if (currentVolumeAfterGain < targetVolume) {
                 gain = Math.min(gain * 1.01, targetVolume / currentVolume);
-                gain = Math.min(gain, maxGain);
             }
         }
+        gain = Math.min(gain, maxGain);
         applyGain(inputBuffer, gain);
     }
 
-    private Double calculateVolume(ByteBuffer inputBuffer) {
+    private RmsMaxGain calculateVolume(ByteBuffer inputBuffer) {
         final int position = inputBuffer.position();
         final int limit = inputBuffer.limit();
 
@@ -51,20 +53,28 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
             return null;
         }
         double sum = 0;
+        double maxGain = 99999;
         for (int i = 0; i < numSamples; i++) {
             double sample = 0;
             if (bytesPerSample == 2) {
                 sample = inputBuffer.getShort();
+                maxGain = Math.min(maxGain, Short.MAX_VALUE / Math.abs(sample));
             } else if (bytesPerSample == 4) {
                 sample = inputBuffer.getInt();
+                maxGain = Math.min(maxGain, Integer.MAX_VALUE / Math.abs(sample));
             } else if (bytesPerSample == 8) {
                 sample = inputBuffer.getLong();
+                maxGain = Math.min(maxGain, Long.MAX_VALUE / Math.abs(sample));
             }
             sum += sample * sample;
         }
         inputBuffer.position(position);
         inputBuffer.limit(limit);
-        return Math.sqrt(sum / numSamples);
+        double rms = Math.sqrt(sum / numSamples);
+        RmsMaxGain rmsMaxGain = new RmsMaxGain();
+        rmsMaxGain.setRms(rms);
+        rmsMaxGain.setMaxGain(maxGain);
+        return rmsMaxGain;
     }
 
 
