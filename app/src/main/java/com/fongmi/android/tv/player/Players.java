@@ -89,9 +89,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     private int error;
     private int retry;
 
-    private static final int RENDER_SURFACE_VIEW = 0;
-    private static final int RENDER_TEXTURE_VIEW = 1;
-
     public static boolean isExo(int type) {
         return type == EXO;
     }
@@ -151,21 +148,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     private static void setRender(ExoPlayer exoPlayer, PlayerView view) {
         View videoView = view.getVideoSurfaceView();
-        try {
-            switch (Setting.getRender()) {
-                case RENDER_TEXTURE_VIEW:
-                    exoPlayer.setVideoTextureView((TextureView) videoView);
-                    break;
-                case RENDER_SURFACE_VIEW:
-                    exoPlayer.setVideoSurfaceView((SurfaceView) videoView);
-                    break;
-            }
-        } catch (Exception e) {
-            if (videoView instanceof TextureView) {
-                exoPlayer.setVideoTextureView((TextureView) videoView);
-            } else if (videoView instanceof SurfaceView) {
-                exoPlayer.setVideoSurfaceView((SurfaceView) videoView);
-            }
+        if (videoView instanceof TextureView) {
+            exoPlayer.setVideoTextureView((TextureView) videoView);
+        }
+        if (videoView instanceof SurfaceView) {
+            exoPlayer.setVideoSurfaceView((SurfaceView) videoView);
         }
     }
 

@@ -280,6 +280,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private PlayerView getExo() {
+        if (Setting.getRender() == Constant.RENDER_TEXTURE_VIEW) {
+            return mBinding.exoTexture;
+        }
         return mBinding.exo;
     }
 
