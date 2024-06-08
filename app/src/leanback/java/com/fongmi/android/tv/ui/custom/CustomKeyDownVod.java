@@ -131,7 +131,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private int getDelta() {
-        int delta = (int) Math.max(1, holdSecond * holdSecond * 0.25) * Constant.INTERVAL_SEEK;
+        int delta = (int) (Math.min(6, Math.max(1, holdSecond * 0.25))) * holdSecond * Constant.INTERVAL_SEEK;
         holdSecond += 1;
         return isMoveAdd ? delta : -delta;
     }
