@@ -1385,13 +1385,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
-        if (event.getType() != ErrorEvent.Type.TIMEOUT && mPlayers.addRetry() > event.getRetry())
-            checkError(event);
+        if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else onRefresh();
     }
 
     private void checkError(ErrorEvent event) {
-        if (event.isUrl() && event.getRetry() > 0 && getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
+        if (getSite().getPlayerType() == -1 && event.isUrl() && event.getRetry() > 0 && getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
             toggleCount++;
             nextPlayer();
         } else {
