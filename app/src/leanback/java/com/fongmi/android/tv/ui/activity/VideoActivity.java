@@ -1385,7 +1385,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
-        if (mPlayers.addRetry() > event.getRetry()) checkError(event);
+        if (event.getType() != ErrorEvent.Type.TIMEOUT && mPlayers.addRetry() > event.getRetry())
+            checkError(event);
         else onRefresh();
     }
 
