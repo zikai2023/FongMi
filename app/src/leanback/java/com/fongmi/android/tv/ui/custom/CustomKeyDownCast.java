@@ -8,7 +8,6 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.utils.KeyUtil;
 
 public class CustomKeyDownCast extends GestureDetector.SimpleOnGestureListener {
@@ -47,7 +46,7 @@ public class CustomKeyDownCast extends GestureDetector.SimpleOnGestureListener {
         } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isRightKey(event)) {
             listener.onSeeking(addTime());
         } else if (event.getAction() == KeyEvent.ACTION_UP && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
-            App.post(() -> listener.onSeekTo(getDelta()), 250);
+            App.post(() -> listener.onSeekTo(CustomKeyDownVod.getDelta(holdSecond, isMoveAdd)), 250);
         } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isUpKey(event)) {
             if (changeSpeed) listener.onSpeedEnd();
             else listener.onKeyUp();
@@ -81,19 +80,16 @@ public class CustomKeyDownCast extends GestureDetector.SimpleOnGestureListener {
 
     private int addTime() {
         isMoveAdd = true;
-        return getDelta();
+        holdSecond += 1;
+        return CustomKeyDownVod.getDelta(holdSecond, isMoveAdd);
     }
 
     private int subTime() {
         isMoveAdd = false;
-        return getDelta();
+        holdSecond += 1;
+        return CustomKeyDownVod.getDelta(holdSecond, isMoveAdd);
     }
 
-    private int getDelta() {
-        int delta = (int) (Math.min(6, Math.max(1, holdSecond * 0.25))) * holdSecond * Constant.INTERVAL_SEEK;
-        holdSecond += 1;
-        return isMoveAdd ? delta : -delta;
-    }
 
     public void resetTime() {
         holdSecond = 0;

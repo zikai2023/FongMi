@@ -72,7 +72,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isRightKey(event)) {
             listener.onSeeking(addTime());
         } else if (event.getAction() == KeyEvent.ACTION_UP && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
-            App.post(() -> listener.onSeekTo(getDelta()), 250);
+            App.post(() -> listener.onSeekTo(getDelta(holdSecond, isMoveAdd)), 250);
         } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isUpKey(event)) {
             if (changeSpeed) listener.onSpeedEnd();
             else listener.onKeyUp();
@@ -122,17 +122,18 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
 
     private int addTime() {
         isMoveAdd = true;
-        return getDelta();
+        holdSecond += 1;
+        return getDelta(holdSecond, isMoveAdd);
     }
 
     private int subTime() {
         isMoveAdd = false;
-        return getDelta();
+        holdSecond += 1;
+        return getDelta(holdSecond, isMoveAdd);
     }
 
-    private int getDelta() {
-        int delta = (int) (Math.min(6, Math.max(1, holdSecond * 0.25))) * holdSecond * Constant.INTERVAL_SEEK;
-        holdSecond += 1;
+    public static int getDelta(int holdSecond, boolean isMoveAdd) {
+        int delta = (int) (Math.min(6, Math.max(1, Math.sqrt(holdSecond))) * holdSecond * Constant.INTERVAL_SEEK);
         return isMoveAdd ? delta : -delta;
     }
 
