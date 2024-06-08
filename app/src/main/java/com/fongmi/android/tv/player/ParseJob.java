@@ -111,10 +111,10 @@ public class ParseJob implements ParseCallback {
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
         String body = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute().body().string();
         JsonObject object = Json.parse(body).getAsJsonObject();
-        object = object.has("data") ? object.getAsJsonObject("data") : object;
-        boolean illegal = body.contains("不存在") || body.contains("已过期");
-        String url = illegal ? "" : Json.safeString(object, "url");
-        checkResult(getHeader(object), url, item.getName(), error);
+        JsonObject t = object.has("data") ? object.getAsJsonObject("data") : new JsonObject();
+        String url = object.has("url") ? object.get("url").getAsString()
+                : t.has("url") ? t.get("url").getAsString(): "";
+        onParseSuccess(getHeader(object), url, item.getName());
     }
 
     private void jsonExtend(String webUrl) throws Throwable {
@@ -149,28 +149,12 @@ public class ParseJob implements ParseCallback {
         }
     }
 
-    private void checkResult(Map<String, String> headers, String url, String from, boolean error) {
-        if (isPass(headers, url)) {
-            onParseSuccess(headers, url, from);
-        } else if (error) {
-            onParseError();
-        }
-    }
-
     private void checkResult(Result result) {
         result.setHeader(parse.getExt().getHeader());
         if (result.getUrl().isEmpty()) onParseError();
-        else if (result.getParse() == 1) startWeb(result.getHeaders(), UrlUtil.convert(result.getUrl().v()));
-        else onParseSuccess(result.getHeaders(), result.getUrl().v(), result.getJxFrom());
-    }
-
-    private boolean isPass(Map<String, String> headers, String url) {
-        try {
-            if (url.length() < 40) return false;
-            return OkHttp.newCall(url, Headers.of(headers)).execute().code() == 200;
-        } catch (Exception e) {
-            return false;
-        }
+        else if (result.getParse() == 1) {
+            startWeb(result.getHeaders(), UrlUtil.convert(result.getUrl().v()), result.getIsVideo());
+        } else onParseSuccess(result.getHeaders(), result.getUrl().v(), result.getJxFrom());
     }
 
     private void startWeb(Parse item, String webUrl) {
@@ -191,7 +175,11 @@ public class ParseJob implements ParseCallback {
 
     private Map<String, String> getHeader(JsonObject object) {
         Map<String, String> headers = new HashMap<>();
-        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER)) headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
+        for (Map.Entry<String, JsonElement> entry : object.entrySet())
+            if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT)
+                    || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER)
+                    || entry.getKey().equalsIgnoreCase("ua"))
+                headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
         if (headers.isEmpty()) return parse.getHeaders();
         return headers;
     }
