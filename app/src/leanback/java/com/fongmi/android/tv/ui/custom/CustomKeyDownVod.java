@@ -120,11 +120,17 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private int addTime() {
-        return holdTime = holdTime + Constant.INTERVAL_SEEK;
+        return getDelta();
     }
 
     private int subTime() {
-        return holdTime = holdTime - Constant.INTERVAL_SEEK;
+        return -getDelta();
+    }
+
+    private int getDelta() {
+        int delta = (int) (holdTime * holdTime * 0.25) * Constant.INTERVAL_SEEK;
+        holdTime += 1;
+        return delta;
     }
 
     public void resetTime() {

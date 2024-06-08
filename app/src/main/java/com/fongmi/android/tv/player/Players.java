@@ -358,10 +358,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     public String getPositionTime(long time) {
+        time = getNewTime(time);
+        return stringToTime(time);
+    }
+
+    public long getNewTime(long time) {
         time = getPosition() + time;
         if (time > getDuration()) time = getDuration();
         else if (time < 0) time = 0;
-        return stringToTime(time);
+        return time;
     }
 
     public String getDurationTime() {
