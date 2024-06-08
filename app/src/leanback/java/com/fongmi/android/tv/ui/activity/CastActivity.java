@@ -462,6 +462,8 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.center.setVisibility(View.VISIBLE);
+        mBinding.widget.seekBar.setPosition(mPlayers.getNewTime(time));
+        mBinding.widget.seekBar.setDuration(mPlayers.getDuration());
         hideProgress();
     }
 
