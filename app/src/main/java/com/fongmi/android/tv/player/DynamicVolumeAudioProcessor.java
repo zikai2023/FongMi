@@ -8,7 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private static final double targetVolume = 2000;
+    private static final double maxVolume = 6000;
+    private static final double targetGain = 1;
 
     AudioFormat audioFormat;
     double gain;
@@ -27,11 +28,14 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         Double maxGain = Optional.ofNullable(rmsMaxGain).map(RmsMaxGain::getMaxGain).orElse(9999.0);
         if (currentVolume != null && currentVolume != 0) {
             double currentVolumeAfterGain = currentVolume * gain;
-            if (currentVolumeAfterGain > targetVolume) {
-                gain = Math.max(gain * 0.99, targetVolume / currentVolume);
-            }
-            if (currentVolumeAfterGain < targetVolume) {
-                gain = Math.min(gain * 1.01, targetVolume / currentVolume);
+            if (currentVolumeAfterGain > maxVolume) {
+                gain = Math.max(gain * 0.99, maxVolume / currentVolume);
+            } else {
+                if (gain > targetGain) {
+                    gain = Math.max(gain * 0.99, targetGain);
+                } else {
+                    gain = Math.min(gain * 1.01, targetGain);
+                }
             }
         }
         gain = Math.min(gain, maxGain);
