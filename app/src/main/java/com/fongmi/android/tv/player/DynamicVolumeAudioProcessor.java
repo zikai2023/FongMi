@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
-    private static final double maxVolume = 6000;
+    private static final double maxVolume = 9000;
     private static final double targetGain = 1;
 
     AudioFormat audioFormat;
@@ -95,11 +95,11 @@ public class DynamicVolumeAudioProcessor extends BaseAudioProcessor {
         ByteBuffer outputBuffer = replaceOutputBuffer(limit - position);
         for (int i = 0; i < numSamples; i++) {
             if (bytesPerSample == 2) {
-                outputBuffer.putShort((short) ((double) inputBuffer.getShort() * gain));
+                outputBuffer.putShort((short) Math.round((double) inputBuffer.getShort() * gain));
             } else if (bytesPerSample == 4) {
-                outputBuffer.putInt((int) ((double) inputBuffer.getInt() * gain));
+                outputBuffer.putInt((int) Math.round((double) inputBuffer.getInt() * gain));
             } else if (bytesPerSample == 8) {
-                outputBuffer.putLong((long) ((double) inputBuffer.getLong() * gain));
+                outputBuffer.putLong(Math.round((double) inputBuffer.getLong() * gain));
             }
         }
         inputBuffer.position(limit);
