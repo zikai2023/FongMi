@@ -22,8 +22,13 @@ public class ProxyRequestInterceptor implements Interceptor {
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
         Request request = chain.request();
+        Response response;
         try {
-            return chain.proceed(request);
+            response = chain.proceed(request);
+            if (response.isSuccessful()) {
+                return response;
+            }
+            response.close();
         } catch (Exception e) {
             if (selector.getHosts().contains(request.url().host())) {
                 throw e;
@@ -36,6 +41,5 @@ public class ProxyRequestInterceptor implements Interceptor {
             selector.getHosts().remove(request.url().host());
             throw e;
         }
-
     }
 }
