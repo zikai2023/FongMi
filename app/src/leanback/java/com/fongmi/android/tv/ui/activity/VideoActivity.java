@@ -59,10 +59,10 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
@@ -85,7 +85,6 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
-import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
@@ -1137,6 +1136,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void showInfoAndCenter() {
         showInfo();
+        mBinding.widget.seekBar.setPosition(mPlayers.getPosition());
+        mBinding.widget.seekBar.setDuration(mPlayers.getDuration());
         mBinding.widget.center.setVisibility(View.VISIBLE);
     }
 
