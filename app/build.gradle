@@ -74,7 +74,7 @@ dependencies {
     implementation project(':pyramid')
     implementation project(':quickjs')
     implementation project(':thunder')
-    implementation project(':youtube')
+//    implementation project(':youtube')
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')
