@@ -34,10 +34,12 @@ public class DownloadSource {
     public void initDownload(Context context){
         m3U8.init(context);
         jianPian.setP2PClass(Source.get().getP2PClass());
+        jianPian.setPathPaused(Source.get().getPathPaused());
     }
     public void initDownload(Context context,Callback callback){
         m3U8.init(context);
         jianPian.setP2PClass(Source.get().getP2PClass());
+        jianPian.setPathPaused(Source.get().getPathPaused());
         callback.success();
     }
 
@@ -96,7 +98,7 @@ public class DownloadSource {
 
     private String download(Download download){
         if (AppDatabase.get().getDownloadTaskDao().find(download.getUrl()).size() > 0){
-          return ResUtil.getString(R.string.download_exists);
+            return ResUtil.getString(R.string.download_exists);
         }else{
             Extractor extractor = getExtractor(download.getUrl());
             if (extractor != null) {

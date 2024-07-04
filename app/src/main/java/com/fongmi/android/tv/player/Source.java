@@ -15,6 +15,7 @@ import com.p2p.P2PClass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Source {
 
@@ -45,6 +46,10 @@ public class Source {
 
     public P2PClass getP2PClass(){
         return jianPian.getP2PClass();
+    }
+
+    public Map<String,Boolean> getPathPaused(){
+        return jianPian.getPathPaused();
     }
 
     private Extractor getExtractor(String url) {
