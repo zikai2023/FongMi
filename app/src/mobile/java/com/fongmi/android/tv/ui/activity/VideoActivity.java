@@ -510,7 +510,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.innerDownloadEp.observe(this, episode -> {
             Notify.progress(this);
             DownloadSource.get().initDownload(this);
-            mViewModel.innerDownload(getName() + "-" + episode.getName(),getPic(),episode.getUrl(),mPlayers.getHeaders().toString());
+            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) ->   mViewModel.innerDownload(getName() + "-" + episode.getName(),getPic(),episode.getUrl(),mPlayers.getHeaders().toString()));
         });
     }
 

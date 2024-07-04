@@ -34,10 +34,12 @@ public class DownloadSource {
     public void initDownload(Context context){
         m3U8.init(context);
         jianPian.setP2PClass(Source.get().getP2PClass());
+        jianPian.setPathPaused(Source.get().getPathPaused());
     }
     public void initDownload(Context context,Callback callback){
         m3U8.init(context);
         jianPian.setP2PClass(Source.get().getP2PClass());
+        jianPian.setPathPaused(Source.get().getPathPaused());
         callback.success();
     }
 

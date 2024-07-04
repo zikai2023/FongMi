@@ -96,11 +96,9 @@ public class DownloadFinishFragment extends BaseFragment implements DownloadAdap
 
     @Override
     public void refreshData(List<DownloadTask> tasks) {
-        if (list.size() != tasks.size()){
-            list.clear();
-            list.addAll(tasks);
-            mAdapter.notifyDataSetChanged();
-        }
+        list.clear();
+        list.addAll(tasks);
+        mAdapter.notifyDataSetChanged();
     }
 
 
