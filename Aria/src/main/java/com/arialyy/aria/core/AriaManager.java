@@ -120,7 +120,7 @@ import java.util.concurrent.ConcurrentHashMap;
     if (appConfig.getUseAriaCrashHandler()) {
       Thread.setDefaultUncaughtExceptionHandler(new AriaCrashHandler());
     }
-    appConfig.setLogLevel(0);
+    appConfig.setLogLevel(ALog.LOG_CLOSE);
     CommandManager.init();
   }
 
