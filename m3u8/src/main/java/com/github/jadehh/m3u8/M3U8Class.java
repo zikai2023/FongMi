@@ -2,6 +2,7 @@ package com.github.jadehh.m3u8;
 
 import android.content.Context;
 import android.os.SystemClock;
+import android.webkit.URLUtil;
 
 import com.arialyy.aria.core.Aria;
 import com.arialyy.aria.core.download.DownloadEntity;
@@ -76,8 +77,9 @@ public class M3U8Class {
 
     static class BandWidthUrlConverter implements IBandWidthUrlConverter {
         @Override public String convert(String m3u8Url, String bandWidthUrl) {
-            int index = m3u8Url.lastIndexOf("/");
-            return m3u8Url.substring(0, index + 1) + bandWidthUrl;
+            String host = UrlUtil.host(m3u8Url);
+            String scheme = UrlUtil.scheme(m3u8Url);
+            return scheme + "://" + host+ bandWidthUrl;
         }
     }
 }

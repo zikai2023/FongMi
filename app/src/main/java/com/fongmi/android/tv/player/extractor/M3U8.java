@@ -28,7 +28,7 @@ public class M3U8 implements DownloadSource.Extractor {
     }
     @Override
     public boolean downloadMatch(String scheme, String host,String url) {
-        if ( ("http".equals(scheme) || "https".equals(scheme) ) && url.endsWith(".m3u8")) return true ;
+        if ( ("http".equals(scheme) || "https".equals(scheme) ) && url.contains(".m3u8")) return true ;
         else return false;
     }
 
