@@ -46,22 +46,30 @@ import okhttp3.Response;
 
 public class SiteViewModel extends ViewModel {
 
+    public MutableLiveData<Episode> ep;
     public MutableLiveData<Episode> episode;
     public MutableLiveData<Result> result;
     public MutableLiveData<Result> player;
     public MutableLiveData<Result> search;
     public MutableLiveData<Danmu> danmaku;
+    public MutableLiveData<Result> download;
     private ExecutorService executor;
 
     public SiteViewModel() {
+        this.ep = new MutableLiveData<>();
         this.episode = new MutableLiveData<>();
         this.result = new MutableLiveData<>();
         this.player = new MutableLiveData<>();
         this.search = new MutableLiveData<>();
+        this.download = new MutableLiveData<>();
     }
 
     public void setEpisode(Episode value) {
         episode.setValue(value);
+    }
+
+    public void setDownload(Episode value) {
+        ep.setValue(value);
     }
 
     public void homeContent() {
@@ -104,7 +112,7 @@ public class SiteViewModel extends ViewModel {
             } else {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 if (site.getType() == 1 && !extend.isEmpty()) params.put("f", App.gson().toJson(extend));
-                else if (site.getType() == 4) params.put("ext", Util.base64(App.gson().toJson(extend)));
+                if (site.getType() == 4) params.put("ext", Util.base64(App.gson().toJson(extend), Util.URL_SAFE));
                 params.put("ac", site.getType() == 0 ? "videolist" : "detail");
                 params.put("t", tid);
                 params.put("pg", page);
@@ -149,8 +157,8 @@ public class SiteViewModel extends ViewModel {
         });
     }
 
-    public void playerContent(String key, String flag, String id) {
-        execute(player, () -> {
+    private void executePlayer(MutableLiveData<Result> data, String key, String flag, String id) {
+        execute(data, () -> {
             Source.get().stop();
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
@@ -191,11 +199,20 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
+                result.setUrl(Source.get().fetch(result));
                 result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
                 SpiderDebug.log(result.toString());
                 return result;
             }
         });
+    }
+
+    public void playerContent(String key, String flag, String id) {
+        executePlayer(player, key, flag, id);
+    }
+
+    public void download(String key, String flag, String id) {
+        executePlayer(download, key, flag, id);
     }
 
     public void searchContent(Site site, String keyword, boolean quick) throws Throwable {
@@ -261,6 +278,7 @@ public class SiteViewModel extends ViewModel {
         ArrayList<String> ids = new ArrayList<>();
         if (site.getCategories().isEmpty()) for (Vod item : result.getList()) ids.add(item.getVodId());
         else for (Vod item : result.getList()) if (site.getCategories().contains(item.getTypeName())) ids.add(item.getVodId());
+        if (ids.isEmpty()) return result.clear();
         ArrayMap<String, String> params = new ArrayMap<>();
         params.put("ac", site.getType() == 0 ? "videolist" : "detail");
         params.put("ids", TextUtils.join(",", ids));
