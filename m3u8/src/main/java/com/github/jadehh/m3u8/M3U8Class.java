@@ -1,20 +1,23 @@
 package com.github.jadehh.m3u8;
 
 import android.content.Context;
-import android.os.SystemClock;
-import android.webkit.URLUtil;
+
 
 import com.arialyy.aria.core.Aria;
+import com.arialyy.aria.core.common.HttpOption;
 import com.arialyy.aria.core.download.DownloadEntity;
 import com.arialyy.aria.core.download.m3u8.M3U8VodOption;
 import com.arialyy.aria.core.processor.IBandWidthUrlConverter;
 import com.arialyy.aria.core.processor.IVodTsUrlConverter;
+
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Util;
 
 import java.io.File;
 import java.util.ArrayList;
+
 import java.util.List;
+
 
 public class M3U8Class {
     private Context context;
@@ -29,6 +32,7 @@ public class M3U8Class {
                 .load(url)
                 .setFilePath(Path.m3u8().getAbsolutePath()+File.separator + Util.md5(url))
                 .ignoreFilePathOccupy()
+                .option(getHttpOption())
                 .m3u8VodOption(getM3U8Option())
                 .create();
         return mTaskId;
@@ -40,7 +44,7 @@ public class M3U8Class {
     }
 
     public void resumeDownload(long taskId){
-        Aria.download(this.context).load(taskId).m3u8VodOption(getM3U8Option()).resume();
+        Aria.download(this.context).load(taskId).option(getHttpOption()).m3u8VodOption(getM3U8Option()).resume();
     }
 
     public void stopDownload(long taskId){
@@ -57,8 +61,16 @@ public class M3U8Class {
         option.generateIndexFile();
         option.setVodTsUrlConvert(new VodTsUrlConverter());
         option.setBandWidthUrlConverter(new BandWidthUrlConverter());
+        option.setMaxTsQueueNum(3);
         return option;
     }
+
+    private HttpOption getHttpOption(){
+        HttpOption taskOption = new HttpOption();
+        taskOption.addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+        return taskOption;
+    }
+
 
     static class VodTsUrlConverter implements IVodTsUrlConverter {
         @Override public List<String> convert(String m3u8Url, List<String> tsUrls) {
@@ -66,9 +78,7 @@ public class M3U8Class {
             List<String> convertedTsUrl = new ArrayList<>();
             String parentUrl = m3u8Url.substring(0, index + 1);
             for (String temp : tsUrls) {
-                if (!temp.startsWith("http")){
-                    convertedTsUrl.add(parentUrl + temp);
-                }
+                if (!temp.startsWith("http")) convertedTsUrl.add(parentUrl + temp);
                 else convertedTsUrl.add(temp);
             }
             return convertedTsUrl;
