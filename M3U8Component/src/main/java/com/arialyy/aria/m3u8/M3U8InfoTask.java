@@ -281,8 +281,7 @@ final public class M3U8InfoTask implements IInfoTask {
         m3U8Entity.keyUrl = param.split("=")[1].replaceAll("\"", "");
         String keyPath;
         if (((M3U8TaskOption) mTaskWrapper.getM3u8Option()).getKeyPath() == null) {
-          keyPath = new File(mEntity.getFilePath()).getParent() + "/"
-              + CommonUtil.getStrMd5(m3U8Entity.keyUrl) + ".key";
+          keyPath = new File(mEntity.getFilePath()).getParent() + "/" + m3U8Entity.keyUrl ;
         } else {
           keyPath = ((M3U8TaskOption) mTaskWrapper.getM3u8Option()).getKeyPath();
         }

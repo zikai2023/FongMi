@@ -8,6 +8,7 @@ import com.arialyy.aria.core.common.HttpOption;
 import com.arialyy.aria.core.download.DownloadEntity;
 import com.arialyy.aria.core.download.m3u8.M3U8VodOption;
 import com.arialyy.aria.core.processor.IBandWidthUrlConverter;
+import com.arialyy.aria.core.processor.IKeyUrlConverter;
 import com.arialyy.aria.core.processor.IVodTsUrlConverter;
 
 import com.github.catvod.utils.Path;
@@ -30,7 +31,7 @@ public class M3U8Class {
     public long startDownload(String url){
         long mTaskId = Aria.download(this.context)
                 .load(url)
-                .setFilePath(Path.m3u8().getAbsolutePath()+File.separator + Util.md5(url))
+                .setFilePath(Path.m3u8().getAbsolutePath()  + File.separator + Util.md5(url) )
                 .ignoreFilePathOccupy()
                 .option(getHttpOption())
                 .m3u8VodOption(getM3U8Option())
@@ -59,6 +60,7 @@ public class M3U8Class {
         M3U8VodOption option = new M3U8VodOption();
         option.setUseDefConvert(false);
         option.generateIndexFile();
+        option.setKeyUrlConverter(new KeyUrlConverter());
         option.setVodTsUrlConvert(new VodTsUrlConverter());
         option.setBandWidthUrlConverter(new BandWidthUrlConverter());
         option.setMaxTsQueueNum(3);
@@ -84,6 +86,19 @@ public class M3U8Class {
             return convertedTsUrl;
         }
     }
+    static class KeyUrlConverter implements IKeyUrlConverter{
+
+        @Override
+        public String convert(String m3u8Url, String tsListUrl, String keyUrl) {
+            int index = m3u8Url.lastIndexOf("/");
+            String parentUrl = m3u8Url.substring(0, index + 1);
+            if (keyUrl.startsWith("http"))                 return keyUrl;
+            else  return parentUrl + keyUrl;
+        }
+    }
+
+
+
 
     static class BandWidthUrlConverter implements IBandWidthUrlConverter {
         @Override public String convert(String m3u8Url, String bandWidthUrl) {
