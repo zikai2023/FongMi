@@ -2,7 +2,6 @@ package com.fongmi.android.tv.player.extractor;
 
 import android.net.Uri;
 
-
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.bean.DownloadTask;
 import com.fongmi.android.tv.db.AppDatabase;
