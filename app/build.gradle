@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk 34
+    compileSdk 35
     flavorDimensions = ["mode", "api", "abi"]
 
     defaultConfig {
@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 241
-        versionName "2.4.1"
+        versionCode 242
+        versionName "2.4.2"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -106,6 +106,7 @@ dependencies {
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')
+    pythonImplementation project(':pyramid')
     implementation 'androidx.media3:media3-datasource-okhttp:' + media3Version
     implementation 'androidx.media3:media3-datasource-rtmp:' + media3Version
     implementation 'androidx.media3:media3-exoplayer:' + media3Version
