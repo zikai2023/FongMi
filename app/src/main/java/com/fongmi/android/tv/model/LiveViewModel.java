@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.model;
 
+import android.net.Uri;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -26,6 +28,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import java.util.TimeZone;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class LiveViewModel extends ViewModel {
 
@@ -70,14 +77,18 @@ public class LiveViewModel extends ViewModel {
     }
 
     public void getEpg(Channel item) {
-        String date = formatDate.format(new Date());
+        Date currentDate = new Date();
+        String serverTimeZone = getServerTimeZone(item.getEpg());
+        TimeZone timeZone = TimeZone.getTimeZone(serverTimeZone);
+        this.formatTime.setTimeZone(timeZone);
+        this.formatDate.setTimeZone(timeZone);
+        String date = formatDate.format(currentDate);
         String url = item.getEpg().replace("{date}", date);
         execute(EPG, () -> {
             if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getTvgName(), formatTime));
             return item.getData().selected();
         });
     }
-
     public void getUrl(Channel item) {
         execute(URL, () -> {
             item.setMsg(null);
@@ -92,6 +103,19 @@ public class LiveViewModel extends ViewModel {
             item.setUrl(item.getCatchup().format(item.getCurrent(), data));
             return item;
         });
+    }
+    
+    private String getServerTimeZone(String url) {
+        try {
+            Uri uri = Uri.parse(url);
+            String timeZone = uri.getQueryParameter("serverTimeZone");
+            if (timeZone != null) {
+                timeZone = timeZone.replace("%2F", "/");
+            }
+            return timeZone != null ? timeZone : "Asia/Kuala_Lumpur";
+        } catch (Exception e) {
+            return "Asia/Kuala_Lumpur";
+        }
     }
 
     private void verify(Live item) {
