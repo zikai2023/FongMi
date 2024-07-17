@@ -22,7 +22,7 @@ https://github.com/CatVodTVOfficial/CatVodTVJarLoader
 | ua         | none  | 用戶代理  |                  |
 | origin     | none  | 來源    |                  |
 | referer    | none  | 參照地址  |                  |
-| epg        | none  | 節目地址  |                  |
+| epg        | none  | 節目地址  | &serverTimeZone　預設 UTC+8               |
 | logo       | none  | 台標地址  |                  |
 | pass       | false | 是否免密碼 |                  |
 | boot       | false | 是否自啟動 |                  |
@@ -31,6 +31,8 @@ https://github.com/CatVodTVOfficial/CatVodTVJarLoader
 | header     | none  | 請求標頭  | 格式：json          |
 | click      | none  | 點擊js  | javascript       |
 | catchup    | none  | 回看參數  |                  |
+| type    | none  | 爬蟲  |0-xml 1-json 2-爬蟲來源 3-自訂爬蟲 4-伺服器爬蟲|
+
 
 ### 樣式
 

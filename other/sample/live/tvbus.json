@@ -3,7 +3,7 @@
     {
       "name": "TXT",
       "url": "https://github.com/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}&serverTimeZone=America/Los_Angeles",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
       "core": {
         "auth": "",
