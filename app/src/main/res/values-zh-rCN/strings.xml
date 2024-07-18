@@ -165,6 +165,26 @@
     <string name="update_check">正在检测更新…</string>
     <string name="update_confirm">更新</string>
 
+    <!-- Sync -->
+    <string name="sync_setting">同步设定</string>
+    <string name="sync_now">同步</string>
+    <string name="sync_ftp_server">1. FTP/FTPS</string>
+    <string name="sync_ftp_server_hint">ftps://ServerName/FolerName/TV.json</string>
+    <string name="sync_ftp_username">FTP Username</string>
+    <string name="sync_ftp_Password">FTP Password</string>
+    <string name="sync_samba_server">5. Samba主机路径</string>
+    <string name="sync_samba_server_hint">smb://ServerName/FolerName/TV.json</string>
+    <string name="sync_samba_username">Samba Username</string>
+    <string name="sync_samba_Password">Samba Password</string>
+    <string name="sync_gist">2. Gist</string>
+    <string name="sync_gist_token">Samba Password</string>
+    <string name="sync_google_drive">3. Google Drive</string>
+    <string name="sync_google_drive_token">Google Drive Token</string>
+    <string name="sync_webdav">4. Webdav</string>
+    <string name="sync_webdav_username">4. Webdav Username</string>
+    <string name="sync_webdav_Password">4. Webdav Password</string>
+
+
     <!-- X5 WebView -->
     <string name="x5webview_title">X5 WebView</string>
     <string name="x5webview_download_enable">解压X5 WebView并启用?</string>

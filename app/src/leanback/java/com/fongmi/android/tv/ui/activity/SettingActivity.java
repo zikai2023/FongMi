@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
@@ -28,6 +29,7 @@ import com.fongmi.android.tv.impl.DohCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
+import com.fongmi.android.tv.impl.SyncCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.BackupDialog;
@@ -37,7 +39,9 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.dialog.SyncDialog;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.bean.HistorySyncManager;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -127,6 +131,8 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.syncSetting.setOnClickListener(this::onSyncSetting);
+        mBinding.sync.setOnClickListener(this::onSync);
     }
 
     @Override
@@ -265,6 +271,34 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     private boolean onVersionDev(View view) {
         Updater.get().force().dev().start(this);
         return true;
+    }
+
+    private void onSyncSetting(View view) {
+        //SettingSyncActivity.create(this).type(type = 0).show();
+        SyncDialog.create(this).show();
+    }
+
+    private void onSync(View view) {
+        new SyncTask().execute();
+    }
+
+    private static class SyncTask extends android.os.AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                //HistorySyncManager syncManager = new HistorySyncManager("ftp://192.168.1.1:21/USB2T/(Documents)/(TVBox)/TV4/TV.json", "user", "pass456");
+                HistorySyncManager syncManager = new HistorySyncManager(Setting.getFtpUri(), Setting.getFtpUsername(), Setting.getFtpPassword());
+                syncManager.syncAll();
+            } catch (Exception e) {
+                Log.e("Sync", "Error during sync operation", e);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            Log.d("Sync", "Sync operation completed");
+        }
     }
 
     private void setWallDefault(View view) {

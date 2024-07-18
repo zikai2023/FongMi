@@ -12,6 +12,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ActivitySettingPlayerBinding;
 import com.fongmi.android.tv.impl.BufferCallback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
+import com.fongmi.android.tv.impl.SyncCallback;
 import com.fongmi.android.tv.impl.UaCallback;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -20,7 +21,7 @@ import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.ResUtil;
 
-public class SettingPlayerActivity extends BaseActivity implements UaCallback, BufferCallback, SubtitleCallback {
+public class SettingPlayerActivity extends BaseActivity implements UaCallback, BufferCallback, SubtitleCallback, SyncCallback {
 
     private ActivitySettingPlayerBinding mBinding;
     private String[] caption;
@@ -178,4 +179,6 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         mBinding.subtitleText.setText(String.valueOf(size));
     }
 
+    @Override
+    public void setSync() {    }
 }
