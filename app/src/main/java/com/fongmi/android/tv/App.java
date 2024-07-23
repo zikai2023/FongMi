@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.bean.HistorySyncManager;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.Init;
@@ -102,6 +104,25 @@ public class App extends Application {
         Init.set(base);
     }
 
+    private static class SyncTask extends android.os.AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                //HistorySyncManager syncManager = new HistorySyncManager("ftp://user:pass123@192.168.1.1:21/USB2T/(Documents)/(TVBox)/TV4/TV.json", "", "pass456");
+                HistorySyncManager syncManager = new HistorySyncManager(Setting.getFtpUri(), Setting.getFtpUsername(), Setting.getFtpPassword());
+                syncManager.syncAll();
+            } catch (Exception e) {
+                Log.e("Sync", "Error during sync operation", e);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            Log.d("Sync", "Sync operation completed");
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -110,6 +131,9 @@ public class App extends Application {
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setProxy(Setting.getProxy());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
+
+        new SyncTask().execute();
+
         CaocConfig.Builder.create().backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
@@ -146,7 +170,6 @@ public class App extends Application {
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
         });
-
     }
 
     @Override

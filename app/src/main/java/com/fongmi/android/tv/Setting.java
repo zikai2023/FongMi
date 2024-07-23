@@ -542,4 +542,14 @@ public class Setting {
         Prefers.put("thunder_cache_dir", dir);
     }
 
+    public static void putFtpUri(String uri) { Prefers.put("ftpUri", uri);    }
+    public static String getFtpUri()  { return Prefers.getString("ftpUri");    }
+
+    public static void putFtpUsername(String username) {     Prefers.put("ftpUsername", username);    }
+    public static String getFtpUsername()  { return Prefers.getString("ftpUsername");    }
+
+    public static void putFtpPassword(String password) {Prefers.put("ftpPassword", password); }
+    public static String getFtpPassword()  { return Prefers.getString("ftpPassword");    }
+
+
 }
